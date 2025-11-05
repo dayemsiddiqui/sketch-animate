@@ -8,7 +8,7 @@ export function Welcome() {
   // Create the animation timeline with fluent API
   const timeline = new Timeline()
     .addScene("Rectangle & Triangle Scene", 5500, async (api) => {
-      // Add rectangle with CAST shadow (stylistic/retro)
+      // Add rectangle with CAST shadow and label!
       api.rect(80, 120, 100, 100, {
         stroke: "rgb(59, 130, 246)", // blue-500
         strokeWidth: 2,
@@ -20,19 +20,17 @@ export function Welcome() {
           offsetX: 15,
           offsetY: 15,
         },
-      });
-
-      // Add text label for the rectangle
-      api.text("Square", 150, 270, {
-        fontSize: 18,
-        color: "rgb(59, 130, 246)",
-        textAlign: "center",
+        label: {
+          text: "DATABASE",
+          fontSize: 14,
+          color: "rgb(29, 78, 216)", // darker blue
+        },
       });
 
       // Wait 2.5 seconds before adding the triangle
       await api.wait(2500);
 
-      // Add triangle with CAST shadow (stylistic/retro)
+      // Add triangle with CAST shadow and label!
       api.triangle(220, 120, 100, {
         stroke: "rgb(34, 197, 94)", // green-500
         strokeWidth: 2,
@@ -44,13 +42,11 @@ export function Welcome() {
           offsetX: 18,
           offsetY: 18,
         },
-      });
-
-      // Add text label for the triangle
-      api.text("Triangle", 270, 270, {
-        fontSize: 18,
-        color: "rgb(34, 197, 94)",
-        textAlign: "center",
+        label: {
+          text: "API",
+          fontSize: 16,
+          color: "rgb(21, 128, 61)", // darker green
+        },
       });
       // Both shapes wiggle together for the rest of the scene
     })

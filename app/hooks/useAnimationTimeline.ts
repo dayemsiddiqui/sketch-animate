@@ -85,27 +85,27 @@ export function useAnimationTimeline(timeline: Timeline) {
 
       // Helper methods for common shapes
       rect: (x: number, y: number, width: number, height: number, options?: ShapeDrawOptions) => {
-        const { shadow, ...roughOptions } = options || {};
-        api.addShape({ type: "rectangle", x, y, width, height, options: roughOptions, shadow });
+        const { shadow, label, ...roughOptions } = options || {};
+        api.addShape({ type: "rectangle", x, y, width, height, options: roughOptions, shadow, label });
       },
 
       square: (x: number, y: number, size: number, options?: ShapeDrawOptions) => {
-        const { shadow, ...roughOptions } = options || {};
-        api.addShape({ type: "rectangle", x, y, width: size, height: size, options: roughOptions, shadow });
+        const { shadow, label, ...roughOptions } = options || {};
+        api.addShape({ type: "rectangle", x, y, width: size, height: size, options: roughOptions, shadow, label });
       },
 
       circle: (x: number, y: number, radius: number, options?: ShapeDrawOptions) => {
-        const { shadow, ...roughOptions } = options || {};
-        api.addShape({ type: "circle", x, y, radius, options: roughOptions, shadow });
+        const { shadow, label, ...roughOptions } = options || {};
+        api.addShape({ type: "circle", x, y, radius, options: roughOptions, shadow, label });
       },
 
       ellipse: (x: number, y: number, width: number, height: number, options?: ShapeDrawOptions) => {
-        const { shadow, ...roughOptions } = options || {};
-        api.addShape({ type: "ellipse", x, y, width, height, options: roughOptions, shadow });
+        const { shadow, label, ...roughOptions } = options || {};
+        api.addShape({ type: "ellipse", x, y, width, height, options: roughOptions, shadow, label });
       },
 
       triangle: (x: number, y: number, size: number, options?: ShapeDrawOptions) => {
-        const { shadow, ...roughOptions } = options || {};
+        const { shadow, label, ...roughOptions } = options || {};
         // Create an equilateral triangle
         const height = (Math.sqrt(3) / 2) * size;
         const points: [number, number][] = [
@@ -113,12 +113,12 @@ export function useAnimationTimeline(timeline: Timeline) {
           [x + size, y + height], // Bottom right
           [x, y + height], // Bottom left
         ];
-        api.addShape({ type: "polygon", x: 0, y: 0, points, options: roughOptions, shadow });
+        api.addShape({ type: "polygon", x: 0, y: 0, points, options: roughOptions, shadow, label });
       },
 
       polygon: (points: [number, number][], options?: ShapeDrawOptions) => {
-        const { shadow, ...roughOptions } = options || {};
-        api.addShape({ type: "polygon", x: 0, y: 0, points, options: roughOptions, shadow });
+        const { shadow, label, ...roughOptions } = options || {};
+        api.addShape({ type: "polygon", x: 0, y: 0, points, options: roughOptions, shadow, label });
       },
 
       text: (text: string, x: number, y: number, options?) => {
@@ -319,6 +319,83 @@ export function useAnimationTimeline(timeline: Timeline) {
           ctx.shadowOffsetX = 0;
           ctx.shadowOffsetY = 0;
           ctx.shadowBlur = 0;
+        }
+
+        // Draw label if specified
+        if (shape.label) {
+          const label = shape.label;
+          let labelX = shape.x;
+          let labelY = shape.y;
+
+          // Calculate center position based on shape type
+          switch (shape.type) {
+            case "rectangle":
+              if (shape.width !== undefined && shape.height !== undefined) {
+                labelX = shape.x + shape.width / 2;
+                labelY = shape.y + shape.height / 2;
+
+                // Apply vertical alignment
+                if (label.align === "top") {
+                  labelY = shape.y + (label.fontSize || 24) / 2 + 5;
+                } else if (label.align === "bottom") {
+                  labelY = shape.y + shape.height - (label.fontSize || 24) / 2 - 5;
+                }
+              }
+              break;
+
+            case "circle":
+              if (shape.radius !== undefined) {
+                labelX = shape.x;
+                labelY = shape.y;
+              }
+              break;
+
+            case "ellipse":
+              labelX = shape.x;
+              labelY = shape.y;
+              break;
+
+            case "polygon":
+              // Calculate centroid of polygon
+              if (shape.points && shape.points.length > 0) {
+                let sumX = 0;
+                let sumY = 0;
+                shape.points.forEach(([x, y]) => {
+                  sumX += x;
+                  sumY += y;
+                });
+                labelX = sumX / shape.points.length;
+                labelY = sumY / shape.points.length;
+              }
+              break;
+          }
+
+          // Apply custom offsets
+          labelX += label.offsetX || 0;
+          labelY += label.offsetY || 0;
+
+          // Draw the label text
+          if (label.sketchy) {
+            drawSketchyText(ctx, label.text, labelX, labelY, {
+              fontSize: label.fontSize,
+              fontFamily: label.fontFamily,
+              color: label.color,
+              textAlign: "center",
+              textBaseline: "middle",
+              jitter: label.jitter,
+              roughness: label.roughness,
+            });
+          } else {
+            const fontSize = label.fontSize || 16;
+            const fontFamily = label.fontFamily || "sans-serif";
+            const color = label.color || "#000000";
+
+            ctx.font = `${fontSize}px ${fontFamily}`;
+            ctx.fillStyle = color;
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(label.text, labelX, labelY);
+          }
         }
       });
     },

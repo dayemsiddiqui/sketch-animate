@@ -22,9 +22,41 @@ export interface ShadowOptions {
 }
 
 /**
- * Shape drawing options that include Rough.js options and shadow
+ * Label configuration for shapes
+ * Makes it easy to add text on/inside shapes without manual positioning
  */
-export type ShapeDrawOptions = Options & { shadow?: ShadowOptions };
+export interface LabelOptions {
+  text: string;
+  fontSize?: number;
+  fontFamily?: string;
+  color?: string;
+  /**
+   * Vertical alignment within the shape
+   * - "middle": Center vertically (default)
+   * - "top": Align to top
+   * - "bottom": Align to bottom
+   */
+  align?: "middle" | "top" | "bottom";
+  /**
+   * Additional offset from calculated position
+   */
+  offsetX?: number;
+  offsetY?: number;
+  /**
+   * Use sketchy text style
+   */
+  sketchy?: boolean;
+  jitter?: number;
+  roughness?: number;
+}
+
+/**
+ * Shape drawing options that include Rough.js options, shadow, and label
+ */
+export type ShapeDrawOptions = Options & {
+  shadow?: ShadowOptions;
+  label?: LabelOptions;
+};
 
 /**
  * A shape that can be drawn on the canvas
@@ -53,6 +85,9 @@ export interface Shape {
 
   // Shadow (optional for any shape)
   shadow?: ShadowOptions;
+
+  // Label (optional for any shape)
+  label?: LabelOptions;
 }
 
 /**
