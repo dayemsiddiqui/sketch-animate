@@ -24,7 +24,7 @@ export interface Shape {
  */
 export interface SceneAPI {
   /**
-   * Add a shape to be drawn in the current frame
+   * Add a shape to be drawn in the current frame (low-level method)
    */
   addShape: (shape: Shape) => void;
 
@@ -48,6 +48,37 @@ export interface SceneAPI {
    * Get the raw HTML canvas element
    */
   getCanvas: () => HTMLCanvasElement;
+
+  // Helper methods for common shapes
+  /**
+   * Add a rectangle
+   */
+  rect: (x: number, y: number, width: number, height: number, options?: Options) => void;
+
+  /**
+   * Add a square
+   */
+  square: (x: number, y: number, size: number, options?: Options) => void;
+
+  /**
+   * Add a circle
+   */
+  circle: (x: number, y: number, radius: number, options?: Options) => void;
+
+  /**
+   * Add an ellipse
+   */
+  ellipse: (x: number, y: number, width: number, height: number, options?: Options) => void;
+
+  /**
+   * Add an equilateral triangle
+   */
+  triangle: (x: number, y: number, size: number, options?: Options) => void;
+
+  /**
+   * Add a custom polygon
+   */
+  polygon: (points: [number, number][], options?: Options) => void;
 }
 
 /**

@@ -8,56 +8,33 @@ export function Welcome() {
   // Create the animation timeline with fluent API
   const timeline = new Timeline()
     .addScene("Rectangle & Triangle Scene", 5500, async (api) => {
-      // Add rectangle at the start of the scene
-      api.addShape({
-        type: "rectangle",
-        x: 100,
-        y: 150,
-        width: 100,
-        height: 100,
-        options: {
-          stroke: "rgb(59, 130, 246)", // blue-500
-          strokeWidth: 2,
-          fill: "rgba(59, 130, 246, 0.1)",
-          fillStyle: "hachure",
-        },
+      // Add rectangle at the start using helper method
+      api.rect(100, 150, 100, 100, {
+        stroke: "rgb(59, 130, 246)", // blue-500
+        strokeWidth: 2,
+        fill: "rgba(59, 130, 246, 0.1)",
+        fillStyle: "hachure",
       });
 
       // Wait 2.5 seconds before adding the triangle
       await api.wait(2500);
 
-      // Add triangle next to the rectangle (staggered appearance!)
-      api.addShape({
-        type: "polygon",
-        x: 0, // Not used for polygon (points are absolute)
-        y: 0,
-        points: [
-          [270, 150], // Top point
-          [320, 250], // Bottom right
-          [220, 250], // Bottom left
-        ],
-        options: {
-          stroke: "rgb(34, 197, 94)", // green-500
-          strokeWidth: 2,
-          fill: "rgba(34, 197, 94, 0.1)",
-          fillStyle: "hachure",
-        },
+      // Add triangle next to the rectangle using helper method (staggered!)
+      api.triangle(220, 150, 100, {
+        stroke: "rgb(34, 197, 94)", // green-500
+        strokeWidth: 2,
+        fill: "rgba(34, 197, 94, 0.1)",
+        fillStyle: "hachure",
       });
       // Both shapes wiggle together for the rest of the scene
     })
     .addScene("Circle Scene", 3500, async (api) => {
-      // Add circle at the start of the scene
-      api.addShape({
-        type: "circle",
-        x: 200, // Center of circle
-        y: 200,
-        radius: 50,
-        options: {
-          stroke: "rgb(239, 68, 68)", // red-500
-          strokeWidth: 2,
-          fill: "rgba(239, 68, 68, 0.1)",
-          fillStyle: "hachure",
-        },
+      // Add circle using helper method
+      api.circle(200, 200, 50, {
+        stroke: "rgb(239, 68, 68)", // red-500
+        strokeWidth: 2,
+        fill: "rgba(239, 68, 68, 0.1)",
+        fillStyle: "hachure",
       });
       // Circle wiggles for the duration of the scene
     })

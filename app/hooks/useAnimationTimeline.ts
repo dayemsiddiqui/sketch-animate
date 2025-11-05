@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import rough from "roughjs";
-import type { Scene, Shape, SceneAPI } from "./types";
+import type { Shape, SceneAPI } from "./types";
 import type { Timeline } from "~/lib/Timeline";
 
 /**
@@ -75,6 +75,38 @@ export function useAnimationTimeline(timeline: Timeline) {
 
       getCanvas: () => {
         throw new Error("getCanvas can only be called during draw");
+      },
+
+      // Helper methods for common shapes
+      rect: (x: number, y: number, width: number, height: number, options?) => {
+        api.addShape({ type: "rectangle", x, y, width, height, options });
+      },
+
+      square: (x: number, y: number, size: number, options?) => {
+        api.addShape({ type: "rectangle", x, y, width: size, height: size, options });
+      },
+
+      circle: (x: number, y: number, radius: number, options?) => {
+        api.addShape({ type: "circle", x, y, radius, options });
+      },
+
+      ellipse: (x: number, y: number, width: number, height: number, options?) => {
+        api.addShape({ type: "ellipse", x, y, width, height, options });
+      },
+
+      triangle: (x: number, y: number, size: number, options?) => {
+        // Create an equilateral triangle
+        const height = (Math.sqrt(3) / 2) * size;
+        const points: [number, number][] = [
+          [x + size / 2, y], // Top point
+          [x + size, y + height], // Bottom right
+          [x, y + height], // Bottom left
+        ];
+        api.addShape({ type: "polygon", x: 0, y: 0, points, options });
+      },
+
+      polygon: (points: [number, number][], options?) => {
+        api.addShape({ type: "polygon", x: 0, y: 0, points, options });
       },
     };
 
