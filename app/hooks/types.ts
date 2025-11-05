@@ -4,6 +4,7 @@
 
 import type { RoughCanvas } from "roughjs/bin/canvas";
 import type { Options } from "roughjs/bin/core";
+import type { AnimateOptions } from "~/lib/Animate";
 
 /**
  * Shadow configuration for shapes
@@ -51,18 +52,32 @@ export interface LabelOptions {
 }
 
 /**
- * Shape drawing options that include Rough.js options, shadow, and label
+ * Shape drawing options that include Rough.js options, shadow, label, and animations
  * Accepts both plain objects and builder class instances
  */
 export type ShapeDrawOptions = Options & {
   shadow?: ShadowOptions | import("~/lib/Shadow").Shadow;
   label?: LabelOptions | import("~/lib/Label").Label;
+  animateIn?: AnimateOptions | import("~/lib/Animate").Animate;
+  animateOut?: AnimateOptions | import("~/lib/Animate").Animate;
 };
+
+/**
+ * Shape lifecycle state
+ */
+export type ShapeState = "entering" | "visible" | "exiting";
 
 /**
  * A shape that can be drawn on the canvas
  */
 export interface Shape {
+  // Identity and lifecycle
+  id: string;
+  state: ShapeState;
+  addedAt: number; // timestamp when shape was added
+  removedAt?: number; // timestamp when removal was triggered
+
+  // Shape type and geometry
   type: "rectangle" | "circle" | "ellipse" | "line" | "polygon" | "text" | "sketchyText";
   x: number;
   y: number;
@@ -89,6 +104,22 @@ export interface Shape {
 
   // Label (optional for any shape) - accepts plain object or Label class
   label?: LabelOptions | import("~/lib/Label").Label;
+
+  // Animation options
+  animateIn?: AnimateOptions | import("~/lib/Animate").Animate;
+  animateOut?: AnimateOptions | import("~/lib/Animate").Animate;
+}
+
+/**
+ * Handle to a shape instance that allows controlling it
+ */
+export interface ShapeHandle {
+  /**
+   * Remove this shape with an optional exit animation
+   * @param animation - Optional exit animation (overrides animateOut from creation)
+   * @returns Promise that resolves when the exit animation completes
+   */
+  remove: (animation?: AnimateOptions | import("~/lib/Animate").Animate) => Promise<void>;
 }
 
 /**
@@ -124,36 +155,43 @@ export interface SceneAPI {
   // Helper methods for common shapes
   /**
    * Add a rectangle
+   * @returns ShapeHandle to control the shape (e.g., remove it later)
    */
-  rect: (x: number, y: number, width: number, height: number, options?: ShapeDrawOptions) => void;
+  rect: (x: number, y: number, width: number, height: number, options?: ShapeDrawOptions) => ShapeHandle;
 
   /**
    * Add a square
+   * @returns ShapeHandle to control the shape (e.g., remove it later)
    */
-  square: (x: number, y: number, size: number, options?: ShapeDrawOptions) => void;
+  square: (x: number, y: number, size: number, options?: ShapeDrawOptions) => ShapeHandle;
 
   /**
    * Add a circle
+   * @returns ShapeHandle to control the shape (e.g., remove it later)
    */
-  circle: (x: number, y: number, radius: number, options?: ShapeDrawOptions) => void;
+  circle: (x: number, y: number, radius: number, options?: ShapeDrawOptions) => ShapeHandle;
 
   /**
    * Add an ellipse
+   * @returns ShapeHandle to control the shape (e.g., remove it later)
    */
-  ellipse: (x: number, y: number, width: number, height: number, options?: ShapeDrawOptions) => void;
+  ellipse: (x: number, y: number, width: number, height: number, options?: ShapeDrawOptions) => ShapeHandle;
 
   /**
    * Add an equilateral triangle
+   * @returns ShapeHandle to control the shape (e.g., remove it later)
    */
-  triangle: (x: number, y: number, size: number, options?: ShapeDrawOptions) => void;
+  triangle: (x: number, y: number, size: number, options?: ShapeDrawOptions) => ShapeHandle;
 
   /**
    * Add a custom polygon
+   * @returns ShapeHandle to control the shape (e.g., remove it later)
    */
-  polygon: (points: [number, number][], options?: ShapeDrawOptions) => void;
+  polygon: (points: [number, number][], options?: ShapeDrawOptions) => ShapeHandle;
 
   /**
    * Add text with optional styling (clean, non-wiggly)
+   * @returns ShapeHandle to control the shape (e.g., remove it later)
    */
   text: (
     text: string,
@@ -166,11 +204,14 @@ export interface SceneAPI {
       textAlign?: "left" | "center" | "right";
       textBaseline?: "top" | "middle" | "bottom" | "alphabetic";
       shadow?: ShadowOptions;
+      animateIn?: AnimateOptions | import("~/lib/Animate").Animate;
+      animateOut?: AnimateOptions | import("~/lib/Animate").Animate;
     }
-  ) => void;
+  ) => ShapeHandle;
 
   /**
    * Add sketchy, hand-drawn text with wiggle effects
+   * @returns ShapeHandle to control the shape (e.g., remove it later)
    */
   sketchyText: (
     text: string,
@@ -185,8 +226,10 @@ export interface SceneAPI {
       jitter?: number;
       roughness?: number;
       shadow?: ShadowOptions;
+      animateIn?: AnimateOptions | import("~/lib/Animate").Animate;
+      animateOut?: AnimateOptions | import("~/lib/Animate").Animate;
     }
-  ) => void;
+  ) => ShapeHandle;
 }
 
 /**

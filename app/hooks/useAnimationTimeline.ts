@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import rough from "roughjs";
-import type { Shape, SceneAPI, ShapeDrawOptions, ShadowOptions, LabelOptions } from "./types";
+import type { Shape, SceneAPI, ShapeDrawOptions, ShadowOptions, LabelOptions, ShapeHandle } from "./types";
 import type { Timeline } from "~/lib/Timeline";
 import { drawSketchyText } from "~/lib/SketchyText";
 import {
@@ -10,6 +10,7 @@ import {
 } from "~/lib/CastShadow";
 import { Shadow } from "~/lib/Shadow";
 import { Label } from "~/lib/Label";
+import { Animate, type AnimateOptions } from "~/lib/Animate";
 
 /**
  * Convert shadow (class or object) to plain options object
@@ -25,6 +26,14 @@ function toShadowOptions(shadow: ShadowOptions | Shadow | undefined): ShadowOpti
 function toLabelOptions(label: LabelOptions | Label | undefined): LabelOptions | undefined {
   if (!label) return undefined;
   return label instanceof Label ? label.toOptions() : label;
+}
+
+/**
+ * Convert animation (class or object) to plain options object
+ */
+function toAnimateOptions(animate: AnimateOptions | Animate | undefined): AnimateOptions | undefined {
+  if (!animate) return undefined;
+  return animate instanceof Animate ? animate.toOptions() : animate;
 }
 
 /**
@@ -56,6 +65,7 @@ export function useAnimationTimeline(timeline: Timeline) {
   const [shapes, setShapes] = useState<Shape[]>([]);
   const sceneStartTimeRef = useRef<number>(Date.now());
   const sceneExecutedRef = useRef<boolean>(false);
+  const shapeIdCounterRef = useRef<number>(0);
 
   // Move to next scene
   const nextScene = useCallback(() => {
@@ -67,8 +77,47 @@ export function useAnimationTimeline(timeline: Timeline) {
     }
     sceneStartTimeRef.current = Date.now();
     sceneExecutedRef.current = false;
+    shapeIdCounterRef.current = 0; // Reset shape ID counter for new scene
     setShapes([]);
   }, [currentSceneIndex, scenes.length, loop]);
+
+  // Helper to create ShapeHandle for a shape
+  const createShapeHandle = useCallback((shapeId: string): ShapeHandle => {
+    return {
+      remove: async (animation?: AnimateOptions | Animate) => {
+        const animateOpts = toAnimateOptions(animation);
+
+        // Mark shape as exiting and set removedAt timestamp
+        setShapes((prev) =>
+          prev.map((s) =>
+            s.id === shapeId
+              ? {
+                  ...s,
+                  state: "exiting" as const,
+                  removedAt: Date.now(),
+                  animateOut: animateOpts || s.animateOut,
+                }
+              : s
+          )
+        );
+
+        // Calculate max animation duration
+        const shape = shapes.find((s) => s.id === shapeId);
+        const exitAnim = animateOpts || toAnimateOptions(shape?.animateOut);
+        const maxDuration = exitAnim
+          ? Math.max(...exitAnim.effects.map((e) => e.duration))
+          : 0;
+
+        // Wait for animation to complete
+        if (maxDuration > 0) {
+          await new Promise((resolve) => setTimeout(resolve, maxDuration));
+        }
+
+        // Remove shape from array
+        setShapes((prev) => prev.filter((s) => s.id !== shapeId));
+      },
+    };
+  }, [shapes]);
 
   // Execute current scene
   useEffect(() => {
@@ -82,7 +131,16 @@ export function useAnimationTimeline(timeline: Timeline) {
     // Create the Scene API
     const api: SceneAPI = {
       addShape: (shape: Shape) => {
-        setShapes((prev) => [...prev, shape]);
+        // Generate unique ID and add lifecycle metadata
+        const id = `shape-${++shapeIdCounterRef.current}`;
+        const now = Date.now();
+        const shapeWithMeta: Shape = {
+          ...shape,
+          id,
+          state: shape.animateIn ? "entering" : "visible",
+          addedAt: now,
+        };
+        setShapes((prev) => [...prev, shapeWithMeta]);
       },
 
       clearShapes: () => {
@@ -102,8 +160,11 @@ export function useAnimationTimeline(timeline: Timeline) {
       },
 
       // Helper methods for common shapes
-      rect: (x: number, y: number, width: number, height: number, options?: ShapeDrawOptions) => {
-        const { shadow, label, ...roughOptions } = options || {};
+      rect: (x: number, y: number, width: number, height: number, options?: ShapeDrawOptions): ShapeHandle => {
+        const { shadow, label, animateIn, animateOut, ...roughOptions } = options || {};
+        const id = `shape-${++shapeIdCounterRef.current}`;
+        const now = Date.now();
+        const animateInOpts = toAnimateOptions(animateIn);
         api.addShape({
           type: "rectangle",
           x,
@@ -113,11 +174,20 @@ export function useAnimationTimeline(timeline: Timeline) {
           options: roughOptions,
           shadow: toShadowOptions(shadow),
           label: toLabelOptions(label),
+          animateIn: animateInOpts,
+          animateOut: toAnimateOptions(animateOut),
+          id,
+          state: animateInOpts ? "entering" : "visible",
+          addedAt: now,
         });
+        return createShapeHandle(id);
       },
 
-      square: (x: number, y: number, size: number, options?: ShapeDrawOptions) => {
-        const { shadow, label, ...roughOptions } = options || {};
+      square: (x: number, y: number, size: number, options?: ShapeDrawOptions): ShapeHandle => {
+        const { shadow, label, animateIn, animateOut, ...roughOptions } = options || {};
+        const id = `shape-${++shapeIdCounterRef.current}`;
+        const now = Date.now();
+        const animateInOpts = toAnimateOptions(animateIn);
         api.addShape({
           type: "rectangle",
           x,
@@ -127,11 +197,20 @@ export function useAnimationTimeline(timeline: Timeline) {
           options: roughOptions,
           shadow: toShadowOptions(shadow),
           label: toLabelOptions(label),
+          animateIn: animateInOpts,
+          animateOut: toAnimateOptions(animateOut),
+          id,
+          state: animateInOpts ? "entering" : "visible",
+          addedAt: now,
         });
+        return createShapeHandle(id);
       },
 
-      circle: (x: number, y: number, radius: number, options?: ShapeDrawOptions) => {
-        const { shadow, label, ...roughOptions } = options || {};
+      circle: (x: number, y: number, radius: number, options?: ShapeDrawOptions): ShapeHandle => {
+        const { shadow, label, animateIn, animateOut, ...roughOptions } = options || {};
+        const id = `shape-${++shapeIdCounterRef.current}`;
+        const now = Date.now();
+        const animateInOpts = toAnimateOptions(animateIn);
         api.addShape({
           type: "circle",
           x,
@@ -140,11 +219,20 @@ export function useAnimationTimeline(timeline: Timeline) {
           options: roughOptions,
           shadow: toShadowOptions(shadow),
           label: toLabelOptions(label),
+          animateIn: animateInOpts,
+          animateOut: toAnimateOptions(animateOut),
+          id,
+          state: animateInOpts ? "entering" : "visible",
+          addedAt: now,
         });
+        return createShapeHandle(id);
       },
 
-      ellipse: (x: number, y: number, width: number, height: number, options?: ShapeDrawOptions) => {
-        const { shadow, label, ...roughOptions } = options || {};
+      ellipse: (x: number, y: number, width: number, height: number, options?: ShapeDrawOptions): ShapeHandle => {
+        const { shadow, label, animateIn, animateOut, ...roughOptions } = options || {};
+        const id = `shape-${++shapeIdCounterRef.current}`;
+        const now = Date.now();
+        const animateInOpts = toAnimateOptions(animateIn);
         api.addShape({
           type: "ellipse",
           x,
@@ -154,11 +242,20 @@ export function useAnimationTimeline(timeline: Timeline) {
           options: roughOptions,
           shadow: toShadowOptions(shadow),
           label: toLabelOptions(label),
+          animateIn: animateInOpts,
+          animateOut: toAnimateOptions(animateOut),
+          id,
+          state: animateInOpts ? "entering" : "visible",
+          addedAt: now,
         });
+        return createShapeHandle(id);
       },
 
-      triangle: (x: number, y: number, size: number, options?: ShapeDrawOptions) => {
-        const { shadow, label, ...roughOptions } = options || {};
+      triangle: (x: number, y: number, size: number, options?: ShapeDrawOptions): ShapeHandle => {
+        const { shadow, label, animateIn, animateOut, ...roughOptions } = options || {};
+        const id = `shape-${++shapeIdCounterRef.current}`;
+        const now = Date.now();
+        const animateInOpts = toAnimateOptions(animateIn);
         // Create an equilateral triangle
         const height = (Math.sqrt(3) / 2) * size;
         const points: [number, number][] = [
@@ -174,11 +271,20 @@ export function useAnimationTimeline(timeline: Timeline) {
           options: roughOptions,
           shadow: toShadowOptions(shadow),
           label: toLabelOptions(label),
+          animateIn: animateInOpts,
+          animateOut: toAnimateOptions(animateOut),
+          id,
+          state: animateInOpts ? "entering" : "visible",
+          addedAt: now,
         });
+        return createShapeHandle(id);
       },
 
-      polygon: (points: [number, number][], options?: ShapeDrawOptions) => {
-        const { shadow, label, ...roughOptions } = options || {};
+      polygon: (points: [number, number][], options?: ShapeDrawOptions): ShapeHandle => {
+        const { shadow, label, animateIn, animateOut, ...roughOptions } = options || {};
+        const id = `shape-${++shapeIdCounterRef.current}`;
+        const now = Date.now();
+        const animateInOpts = toAnimateOptions(animateIn);
         api.addShape({
           type: "polygon",
           x: 0,
@@ -187,10 +293,19 @@ export function useAnimationTimeline(timeline: Timeline) {
           options: roughOptions,
           shadow: toShadowOptions(shadow),
           label: toLabelOptions(label),
+          animateIn: animateInOpts,
+          animateOut: toAnimateOptions(animateOut),
+          id,
+          state: animateInOpts ? "entering" : "visible",
+          addedAt: now,
         });
+        return createShapeHandle(id);
       },
 
-      text: (text: string, x: number, y: number, options?) => {
+      text: (text: string, x: number, y: number, options?): ShapeHandle => {
+        const id = `shape-${++shapeIdCounterRef.current}`;
+        const now = Date.now();
+        const animateInOpts = toAnimateOptions(options?.animateIn);
         api.addShape({
           type: "text",
           x,
@@ -202,10 +317,19 @@ export function useAnimationTimeline(timeline: Timeline) {
           textAlign: options?.textAlign,
           textBaseline: options?.textBaseline,
           shadow: options?.shadow,
+          animateIn: animateInOpts,
+          animateOut: toAnimateOptions(options?.animateOut),
+          id,
+          state: animateInOpts ? "entering" : "visible",
+          addedAt: now,
         });
+        return createShapeHandle(id);
       },
 
-      sketchyText: (text: string, x: number, y: number, options?) => {
+      sketchyText: (text: string, x: number, y: number, options?): ShapeHandle => {
+        const id = `shape-${++shapeIdCounterRef.current}`;
+        const now = Date.now();
+        const animateInOpts = toAnimateOptions(options?.animateIn);
         api.addShape({
           type: "sketchyText",
           x,
@@ -219,7 +343,13 @@ export function useAnimationTimeline(timeline: Timeline) {
           jitter: options?.jitter,
           roughness: options?.roughness,
           shadow: options?.shadow,
+          animateIn: animateInOpts,
+          animateOut: toAnimateOptions(options?.animateOut),
+          id,
+          state: animateInOpts ? "entering" : "visible",
+          addedAt: now,
         });
+        return createShapeHandle(id);
       },
     };
 
@@ -245,8 +375,89 @@ export function useAnimationTimeline(timeline: Timeline) {
       const ctx = canvas.getContext("2d");
       if (!ctx) return;
 
+      const currentTime = Date.now();
+
       // Draw all shapes
       shapes.forEach((shape) => {
+        // Calculate animation progress
+        let opacity = 1;
+        let offsetX = 0;
+        let offsetY = 0;
+
+        if (shape.state === "entering" && shape.animateIn) {
+          const elapsed = currentTime - shape.addedAt;
+          const animateInOpts = toAnimateOptions(shape.animateIn);
+
+          if (animateInOpts) {
+            animateInOpts.effects.forEach((effect) => {
+              const progress = Math.min(elapsed / effect.duration, 1);
+
+              if (effect.type === "fade") {
+                opacity *= progress;
+              } else if (effect.type === "slide" && effect.direction && effect.distance) {
+                const slideProgress = 1 - progress; // Start far, move to 0
+                switch (effect.direction) {
+                  case "left":
+                    offsetX -= effect.distance * slideProgress;
+                    break;
+                  case "right":
+                    offsetX += effect.distance * slideProgress;
+                    break;
+                  case "top":
+                    offsetY -= effect.distance * slideProgress;
+                    break;
+                  case "bottom":
+                    offsetY += effect.distance * slideProgress;
+                    break;
+                }
+              }
+            });
+
+            // Check if all entrance animations are complete
+            const maxDuration = Math.max(...animateInOpts.effects.map((e) => e.duration));
+            if (elapsed >= maxDuration) {
+              // Update state to visible (will happen on next render)
+              setShapes((prev) =>
+                prev.map((s) => (s.id === shape.id ? { ...s, state: "visible" as const } : s))
+              );
+            }
+          }
+        } else if (shape.state === "exiting" && shape.removedAt && shape.animateOut) {
+          const elapsed = currentTime - shape.removedAt;
+          const animateOutOpts = toAnimateOptions(shape.animateOut);
+
+          if (animateOutOpts) {
+            animateOutOpts.effects.forEach((effect) => {
+              const progress = Math.min(elapsed / effect.duration, 1);
+
+              if (effect.type === "fade") {
+                opacity *= 1 - progress; // Fade out
+              } else if (effect.type === "slide" && effect.direction && effect.distance) {
+                // Slide out (move away)
+                switch (effect.direction) {
+                  case "left":
+                    offsetX -= effect.distance * progress;
+                    break;
+                  case "right":
+                    offsetX += effect.distance * progress;
+                    break;
+                  case "top":
+                    offsetY -= effect.distance * progress;
+                    break;
+                  case "bottom":
+                    offsetY += effect.distance * progress;
+                    break;
+                }
+              }
+            });
+          }
+        }
+
+        // Save canvas state before applying transformations
+        ctx.save();
+        ctx.globalAlpha = opacity;
+        ctx.translate(offsetX, offsetY);
+
         // Convert shadow class to options if needed
         const shadowOpts = toShadowOptions(shape.shadow);
         const shadowType = shadowOpts?.type || "drop";
@@ -468,6 +679,9 @@ export function useAnimationTimeline(timeline: Timeline) {
             ctx.fillText(labelOpts.text, labelX, labelY);
           }
         }
+
+        // Restore canvas state after drawing shape
+        ctx.restore();
       });
     },
     [shapes]
