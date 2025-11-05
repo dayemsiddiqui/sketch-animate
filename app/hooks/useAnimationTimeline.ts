@@ -247,11 +247,13 @@ export function useAnimationTimeline(timeline: Timeline) {
 
       // Draw all shapes
       shapes.forEach((shape) => {
-        const shadowType = shape.shadow?.type || "drop";
-        const isCastShadow = shape.shadow && shadowType === "cast";
+        // Convert shadow class to options if needed
+        const shadowOpts = toShadowOptions(shape.shadow);
+        const shadowType = shadowOpts?.type || "drop";
+        const isCastShadow = shadowOpts && shadowType === "cast";
 
         // For cast shadows, draw the shadow geometry first
-        if (isCastShadow && shape.shadow) {
+        if (isCastShadow && shadowOpts) {
           switch (shape.type) {
             case "rectangle":
               if (shape.width !== undefined && shape.height !== undefined) {
@@ -261,14 +263,14 @@ export function useAnimationTimeline(timeline: Timeline) {
                   shape.y,
                   shape.width,
                   shape.height,
-                  shape.shadow
+                  shadowOpts
                 );
               }
               break;
 
             case "circle":
               if (shape.radius !== undefined) {
-                drawCircleCastShadow(rc, shape.x, shape.y, shape.radius, shape.shadow);
+                drawCircleCastShadow(rc, shape.x, shape.y, shape.radius, shadowOpts);
               }
               break;
 
@@ -276,24 +278,24 @@ export function useAnimationTimeline(timeline: Timeline) {
               // Treat ellipse as circle for cast shadow (simplified)
               if (shape.width !== undefined && shape.height !== undefined) {
                 const avgRadius = (shape.width + shape.height) / 4;
-                drawCircleCastShadow(rc, shape.x, shape.y, avgRadius, shape.shadow);
+                drawCircleCastShadow(rc, shape.x, shape.y, avgRadius, shadowOpts);
               }
               break;
 
             case "polygon":
               if (shape.points && shape.points.length > 0) {
-                drawPolygonCastShadow(rc, shape.points, shape.shadow);
+                drawPolygonCastShadow(rc, shape.points, shadowOpts);
               }
               break;
           }
         }
 
         // Apply drop shadow if specified (not cast)
-        if (shape.shadow && !isCastShadow) {
-          ctx.shadowColor = shape.shadow.color;
-          ctx.shadowOffsetX = shape.shadow.offsetX;
-          ctx.shadowOffsetY = shape.shadow.offsetY;
-          ctx.shadowBlur = shape.shadow.blur || 0;
+        if (shadowOpts && !isCastShadow) {
+          ctx.shadowColor = shadowOpts.color;
+          ctx.shadowOffsetX = shadowOpts.offsetX;
+          ctx.shadowOffsetY = shadowOpts.offsetY;
+          ctx.shadowBlur = shadowOpts.blur || 0;
         }
 
         // Draw the main shape
@@ -383,7 +385,7 @@ export function useAnimationTimeline(timeline: Timeline) {
         }
 
         // Reset shadow after drawing each shape
-        if (shape.shadow) {
+        if (shadowOpts) {
           ctx.shadowColor = "transparent";
           ctx.shadowOffsetX = 0;
           ctx.shadowOffsetY = 0;
@@ -391,8 +393,8 @@ export function useAnimationTimeline(timeline: Timeline) {
         }
 
         // Draw label if specified
-        if (shape.label) {
-          const label = shape.label;
+        const labelOpts = toLabelOptions(shape.label);
+        if (labelOpts) {
           let labelX = shape.x;
           let labelY = shape.y;
 
@@ -404,10 +406,10 @@ export function useAnimationTimeline(timeline: Timeline) {
                 labelY = shape.y + shape.height / 2;
 
                 // Apply vertical alignment
-                if (label.align === "top") {
-                  labelY = shape.y + (label.fontSize || 24) / 2 + 5;
-                } else if (label.align === "bottom") {
-                  labelY = shape.y + shape.height - (label.fontSize || 24) / 2 - 5;
+                if (labelOpts.align === "top") {
+                  labelY = shape.y + (labelOpts.fontSize || 24) / 2 + 5;
+                } else if (labelOpts.align === "bottom") {
+                  labelY = shape.y + shape.height - (labelOpts.fontSize || 24) / 2 - 5;
                 }
               }
               break;
@@ -440,30 +442,30 @@ export function useAnimationTimeline(timeline: Timeline) {
           }
 
           // Apply custom offsets
-          labelX += label.offsetX || 0;
-          labelY += label.offsetY || 0;
+          labelX += labelOpts.offsetX || 0;
+          labelY += labelOpts.offsetY || 0;
 
           // Draw the label text
-          if (label.sketchy) {
-            drawSketchyText(ctx, label.text, labelX, labelY, {
-              fontSize: label.fontSize,
-              fontFamily: label.fontFamily,
-              color: label.color,
+          if (labelOpts.sketchy) {
+            drawSketchyText(ctx, labelOpts.text, labelX, labelY, {
+              fontSize: labelOpts.fontSize,
+              fontFamily: labelOpts.fontFamily,
+              color: labelOpts.color,
               textAlign: "center",
               textBaseline: "middle",
-              jitter: label.jitter,
-              roughness: label.roughness,
+              jitter: labelOpts.jitter,
+              roughness: labelOpts.roughness,
             });
           } else {
-            const fontSize = label.fontSize || 16;
-            const fontFamily = label.fontFamily || "sans-serif";
-            const color = label.color || "#000000";
+            const fontSize = labelOpts.fontSize || 16;
+            const fontFamily = labelOpts.fontFamily || "sans-serif";
+            const color = labelOpts.color || "#000000";
 
             ctx.font = `${fontSize}px ${fontFamily}`;
             ctx.fillStyle = color;
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
-            ctx.fillText(label.text, labelX, labelY);
+            ctx.fillText(labelOpts.text, labelX, labelY);
           }
         }
       });
