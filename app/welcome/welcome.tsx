@@ -8,12 +8,18 @@ export function Welcome() {
   // Create the animation timeline with fluent API
   const timeline = new Timeline()
     .addScene("Rectangle & Triangle Scene", 5500, async (api) => {
-      // Add rectangle at the start using helper method
-      api.rect(100, 150, 100, 100, {
+      // Add rectangle with CAST shadow (stylistic/retro)
+      api.rect(80, 120, 100, 100, {
         stroke: "rgb(59, 130, 246)", // blue-500
         strokeWidth: 2,
-        fill: "rgba(59, 130, 246, 0.1)",
-        fillStyle: "hachure",
+        fill: "rgb(147, 197, 253)", // Brighter fill for contrast
+        fillStyle: "solid",
+        shadow: {
+          type: "cast", // Cast shadow for retro look!
+          color: "rgba(0, 0, 0, 0.6)",
+          offsetX: 15,
+          offsetY: 15,
+        },
       });
 
       // Add text label for the rectangle
@@ -26,12 +32,18 @@ export function Welcome() {
       // Wait 2.5 seconds before adding the triangle
       await api.wait(2500);
 
-      // Add triangle next to the rectangle using helper method (staggered!)
-      api.triangle(220, 150, 100, {
+      // Add triangle with CAST shadow (stylistic/retro)
+      api.triangle(220, 120, 100, {
         stroke: "rgb(34, 197, 94)", // green-500
         strokeWidth: 2,
-        fill: "rgba(34, 197, 94, 0.1)",
-        fillStyle: "hachure",
+        fill: "rgb(134, 239, 172)", // Brighter green fill
+        fillStyle: "solid",
+        shadow: {
+          type: "cast", // Cast shadow for retro look!
+          color: "rgba(0, 0, 0, 0.7)",
+          offsetX: 18,
+          offsetY: 18,
+        },
       });
 
       // Add text label for the triangle
@@ -43,12 +55,18 @@ export function Welcome() {
       // Both shapes wiggle together for the rest of the scene
     })
     .addScene("Circle Scene", 3500, async (api) => {
-      // Add circle using helper method
+      // Add circle using helper method with shadow
       api.circle(200, 200, 50, {
         stroke: "rgb(239, 68, 68)", // red-500
         strokeWidth: 2,
         fill: "rgba(239, 68, 68, 0.1)",
         fillStyle: "hachure",
+        shadow: {
+          color: "rgba(239, 68, 68, 0.4)",
+          offsetX: 5,
+          offsetY: 5,
+          blur: 4,
+        },
       });
 
       // Add sketchy text in the center with wiggle effect!

@@ -1,8 +1,13 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import rough from "roughjs";
-import type { Shape, SceneAPI } from "./types";
+import type { Shape, SceneAPI, ShapeDrawOptions } from "./types";
 import type { Timeline } from "~/lib/Timeline";
 import { drawSketchyText } from "~/lib/SketchyText";
+import {
+  drawRectangleCastShadow,
+  drawCircleCastShadow,
+  drawPolygonCastShadow,
+} from "~/lib/CastShadow";
 
 /**
  * Hook for managing an animation timeline with multiple scenes.
@@ -79,23 +84,28 @@ export function useAnimationTimeline(timeline: Timeline) {
       },
 
       // Helper methods for common shapes
-      rect: (x: number, y: number, width: number, height: number, options?) => {
-        api.addShape({ type: "rectangle", x, y, width, height, options });
+      rect: (x: number, y: number, width: number, height: number, options?: ShapeDrawOptions) => {
+        const { shadow, ...roughOptions } = options || {};
+        api.addShape({ type: "rectangle", x, y, width, height, options: roughOptions, shadow });
       },
 
-      square: (x: number, y: number, size: number, options?) => {
-        api.addShape({ type: "rectangle", x, y, width: size, height: size, options });
+      square: (x: number, y: number, size: number, options?: ShapeDrawOptions) => {
+        const { shadow, ...roughOptions } = options || {};
+        api.addShape({ type: "rectangle", x, y, width: size, height: size, options: roughOptions, shadow });
       },
 
-      circle: (x: number, y: number, radius: number, options?) => {
-        api.addShape({ type: "circle", x, y, radius, options });
+      circle: (x: number, y: number, radius: number, options?: ShapeDrawOptions) => {
+        const { shadow, ...roughOptions } = options || {};
+        api.addShape({ type: "circle", x, y, radius, options: roughOptions, shadow });
       },
 
-      ellipse: (x: number, y: number, width: number, height: number, options?) => {
-        api.addShape({ type: "ellipse", x, y, width, height, options });
+      ellipse: (x: number, y: number, width: number, height: number, options?: ShapeDrawOptions) => {
+        const { shadow, ...roughOptions } = options || {};
+        api.addShape({ type: "ellipse", x, y, width, height, options: roughOptions, shadow });
       },
 
-      triangle: (x: number, y: number, size: number, options?) => {
+      triangle: (x: number, y: number, size: number, options?: ShapeDrawOptions) => {
+        const { shadow, ...roughOptions } = options || {};
         // Create an equilateral triangle
         const height = (Math.sqrt(3) / 2) * size;
         const points: [number, number][] = [
@@ -103,11 +113,12 @@ export function useAnimationTimeline(timeline: Timeline) {
           [x + size, y + height], // Bottom right
           [x, y + height], // Bottom left
         ];
-        api.addShape({ type: "polygon", x: 0, y: 0, points, options });
+        api.addShape({ type: "polygon", x: 0, y: 0, points, options: roughOptions, shadow });
       },
 
-      polygon: (points: [number, number][], options?) => {
-        api.addShape({ type: "polygon", x: 0, y: 0, points, options });
+      polygon: (points: [number, number][], options?: ShapeDrawOptions) => {
+        const { shadow, ...roughOptions } = options || {};
+        api.addShape({ type: "polygon", x: 0, y: 0, points, options: roughOptions, shadow });
       },
 
       text: (text: string, x: number, y: number, options?) => {
@@ -121,6 +132,7 @@ export function useAnimationTimeline(timeline: Timeline) {
           color: options?.color,
           textAlign: options?.textAlign,
           textBaseline: options?.textBaseline,
+          shadow: options?.shadow,
         });
       },
 
@@ -137,6 +149,7 @@ export function useAnimationTimeline(timeline: Timeline) {
           textBaseline: options?.textBaseline,
           jitter: options?.jitter,
           roughness: options?.roughness,
+          shadow: options?.shadow,
         });
       },
     };
@@ -160,9 +173,61 @@ export function useAnimationTimeline(timeline: Timeline) {
   const draw = useCallback(
     (canvas: HTMLCanvasElement) => {
       const rc = rough.canvas(canvas);
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
 
       // Draw all shapes
       shapes.forEach((shape) => {
+        const shadowType = shape.shadow?.type || "drop";
+        const isCastShadow = shape.shadow && shadowType === "cast";
+
+        // For cast shadows, draw the shadow geometry first
+        if (isCastShadow && shape.shadow) {
+          switch (shape.type) {
+            case "rectangle":
+              if (shape.width !== undefined && shape.height !== undefined) {
+                drawRectangleCastShadow(
+                  rc,
+                  shape.x,
+                  shape.y,
+                  shape.width,
+                  shape.height,
+                  shape.shadow
+                );
+              }
+              break;
+
+            case "circle":
+              if (shape.radius !== undefined) {
+                drawCircleCastShadow(rc, shape.x, shape.y, shape.radius, shape.shadow);
+              }
+              break;
+
+            case "ellipse":
+              // Treat ellipse as circle for cast shadow (simplified)
+              if (shape.width !== undefined && shape.height !== undefined) {
+                const avgRadius = (shape.width + shape.height) / 4;
+                drawCircleCastShadow(rc, shape.x, shape.y, avgRadius, shape.shadow);
+              }
+              break;
+
+            case "polygon":
+              if (shape.points && shape.points.length > 0) {
+                drawPolygonCastShadow(rc, shape.points, shape.shadow);
+              }
+              break;
+          }
+        }
+
+        // Apply drop shadow if specified (not cast)
+        if (shape.shadow && !isCastShadow) {
+          ctx.shadowColor = shape.shadow.color;
+          ctx.shadowOffsetX = shape.shadow.offsetX;
+          ctx.shadowOffsetY = shape.shadow.offsetY;
+          ctx.shadowBlur = shape.shadow.blur || 0;
+        }
+
+        // Draw the main shape
         switch (shape.type) {
           case "rectangle":
             if (shape.width !== undefined && shape.height !== undefined) {
@@ -246,6 +311,14 @@ export function useAnimationTimeline(timeline: Timeline) {
               }
             }
             break;
+        }
+
+        // Reset shadow after drawing each shape
+        if (shape.shadow) {
+          ctx.shadowColor = "transparent";
+          ctx.shadowOffsetX = 0;
+          ctx.shadowOffsetY = 0;
+          ctx.shadowBlur = 0;
         }
       });
     },

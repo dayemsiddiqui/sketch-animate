@@ -6,6 +6,27 @@ import type { RoughCanvas } from "roughjs/bin/canvas";
 import type { Options } from "roughjs/bin/core";
 
 /**
+ * Shadow configuration for shapes
+ */
+export interface ShadowOptions {
+  /**
+   * Type of shadow:
+   * - "drop": Soft shadow with blur (default)
+   * - "cast": Solid, connected shadow for stylistic/retro look
+   */
+  type?: "drop" | "cast";
+  color: string;
+  offsetX: number;
+  offsetY: number;
+  blur?: number; // Only applies to "drop" type
+}
+
+/**
+ * Shape drawing options that include Rough.js options and shadow
+ */
+export type ShapeDrawOptions = Options & { shadow?: ShadowOptions };
+
+/**
  * A shape that can be drawn on the canvas
  */
 export interface Shape {
@@ -29,6 +50,9 @@ export interface Shape {
   // Sketchy text specific properties
   jitter?: number;
   roughness?: number;
+
+  // Shadow (optional for any shape)
+  shadow?: ShadowOptions;
 }
 
 /**
@@ -65,32 +89,32 @@ export interface SceneAPI {
   /**
    * Add a rectangle
    */
-  rect: (x: number, y: number, width: number, height: number, options?: Options) => void;
+  rect: (x: number, y: number, width: number, height: number, options?: ShapeDrawOptions) => void;
 
   /**
    * Add a square
    */
-  square: (x: number, y: number, size: number, options?: Options) => void;
+  square: (x: number, y: number, size: number, options?: ShapeDrawOptions) => void;
 
   /**
    * Add a circle
    */
-  circle: (x: number, y: number, radius: number, options?: Options) => void;
+  circle: (x: number, y: number, radius: number, options?: ShapeDrawOptions) => void;
 
   /**
    * Add an ellipse
    */
-  ellipse: (x: number, y: number, width: number, height: number, options?: Options) => void;
+  ellipse: (x: number, y: number, width: number, height: number, options?: ShapeDrawOptions) => void;
 
   /**
    * Add an equilateral triangle
    */
-  triangle: (x: number, y: number, size: number, options?: Options) => void;
+  triangle: (x: number, y: number, size: number, options?: ShapeDrawOptions) => void;
 
   /**
    * Add a custom polygon
    */
-  polygon: (points: [number, number][], options?: Options) => void;
+  polygon: (points: [number, number][], options?: ShapeDrawOptions) => void;
 
   /**
    * Add text with optional styling (clean, non-wiggly)
@@ -105,6 +129,7 @@ export interface SceneAPI {
       color?: string;
       textAlign?: "left" | "center" | "right";
       textBaseline?: "top" | "middle" | "bottom" | "alphabetic";
+      shadow?: ShadowOptions;
     }
   ) => void;
 
@@ -123,6 +148,7 @@ export interface SceneAPI {
       textBaseline?: "top" | "middle" | "bottom" | "alphabetic";
       jitter?: number;
       roughness?: number;
+      shadow?: ShadowOptions;
     }
   ) => void;
 }
