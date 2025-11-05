@@ -1,19 +1,60 @@
-import rough from "roughjs";
 import { useAnimatedCanvas } from "~/hooks/useAnimatedCanvas";
+import { useAnimationTimeline } from "~/hooks/useAnimationTimeline";
+import type { Scene } from "~/hooks/types";
 import logoDark from "./logo-dark.svg";
 import logoLight from "./logo-light.svg";
 
 export function Welcome() {
-  const canvasRef = useAnimatedCanvas((canvas) => {
-    const rc = rough.canvas(canvas);
-    // Draw a square with Rough.js - redrawn each frame for wiggle animation
-    rc.rectangle(150, 150, 100, 100, {
-      stroke: "rgb(59, 130, 246)", // blue-500
-      strokeWidth: 2,
-      fill: "rgba(59, 130, 246, 0.1)",
-      fillStyle: "hachure",
-    });
-  });
+  // Define the animation timeline
+  const scenes: Scene[] = [
+    {
+      name: "Rectangle Scene",
+      duration: 3500, // Rectangle shows for 3.5 seconds
+      draw: async (api) => {
+        // Add rectangle at the start of the scene
+        api.addShape({
+          type: "rectangle",
+          x: 150,
+          y: 150,
+          width: 100,
+          height: 100,
+          options: {
+            stroke: "rgb(59, 130, 246)", // blue-500
+            strokeWidth: 2,
+            fill: "rgba(59, 130, 246, 0.1)",
+            fillStyle: "hachure",
+          },
+        });
+        // Rectangle wiggles for the duration of the scene
+      },
+    },
+    {
+      name: "Circle Scene",
+      duration: 3500, // Circle shows for 3.5 seconds
+      draw: async (api) => {
+        // Add circle at the start of the scene
+        api.addShape({
+          type: "circle",
+          x: 200, // Center of circle
+          y: 200,
+          radius: 50,
+          options: {
+            stroke: "rgb(239, 68, 68)", // red-500
+            strokeWidth: 2,
+            fill: "rgba(239, 68, 68, 0.1)",
+            fillStyle: "hachure",
+          },
+        });
+        // Circle wiggles for the duration of the scene
+      },
+    },
+  ];
+
+  // Get the draw function from the timeline
+  const timelineDraw = useAnimationTimeline(scenes, { loop: true });
+
+  // Pass it to the animated canvas at 12 FPS
+  const canvasRef = useAnimatedCanvas(timelineDraw, { fps: 12 });
 
   return (
     <main className="flex items-center justify-center pt-16 pb-4">
@@ -42,7 +83,7 @@ export function Welcome() {
             className="border border-gray-200 dark:border-gray-700 rounded-lg"
           />
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            Hand-drawn square using Rough.js
+            Hand-drawn animation with timeline & wiggle effect (12 FPS)
           </p>
         </div>
 
