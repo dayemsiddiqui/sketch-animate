@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import rough from "roughjs";
 import type { Shape, SceneAPI } from "./types";
 import type { Timeline } from "~/lib/Timeline";
+import { drawSketchyText } from "~/lib/SketchyText";
 
 /**
  * Hook for managing an animation timeline with multiple scenes.
@@ -108,6 +109,36 @@ export function useAnimationTimeline(timeline: Timeline) {
       polygon: (points: [number, number][], options?) => {
         api.addShape({ type: "polygon", x: 0, y: 0, points, options });
       },
+
+      text: (text: string, x: number, y: number, options?) => {
+        api.addShape({
+          type: "text",
+          x,
+          y,
+          text,
+          fontSize: options?.fontSize,
+          fontFamily: options?.fontFamily,
+          color: options?.color,
+          textAlign: options?.textAlign,
+          textBaseline: options?.textBaseline,
+        });
+      },
+
+      sketchyText: (text: string, x: number, y: number, options?) => {
+        api.addShape({
+          type: "sketchyText",
+          x,
+          y,
+          text,
+          fontSize: options?.fontSize,
+          fontFamily: options?.fontFamily,
+          color: options?.color,
+          textAlign: options?.textAlign,
+          textBaseline: options?.textBaseline,
+          jitter: options?.jitter,
+          roughness: options?.roughness,
+        });
+      },
     };
 
     // Execute the scene's draw function
@@ -178,6 +209,41 @@ export function useAnimationTimeline(timeline: Timeline) {
           case "polygon":
             if (shape.points && shape.points.length > 0) {
               rc.polygon(shape.points, shape.options);
+            }
+            break;
+
+          case "text":
+            if (shape.text) {
+              const ctx = canvas.getContext("2d");
+              if (ctx) {
+                const fontSize = shape.fontSize || 24;
+                const fontFamily = shape.fontFamily || "sans-serif";
+                const color = shape.color || "#000000";
+
+                ctx.font = `${fontSize}px ${fontFamily}`;
+                ctx.fillStyle = color;
+                ctx.textAlign = shape.textAlign || "left";
+                ctx.textBaseline = shape.textBaseline || "alphabetic";
+
+                ctx.fillText(shape.text, shape.x, shape.y);
+              }
+            }
+            break;
+
+          case "sketchyText":
+            if (shape.text) {
+              const ctx = canvas.getContext("2d");
+              if (ctx) {
+                drawSketchyText(ctx, shape.text, shape.x, shape.y, {
+                  fontSize: shape.fontSize,
+                  fontFamily: shape.fontFamily,
+                  color: shape.color,
+                  textAlign: shape.textAlign,
+                  textBaseline: shape.textBaseline,
+                  jitter: shape.jitter,
+                  roughness: shape.roughness,
+                });
+              }
             }
             break;
         }

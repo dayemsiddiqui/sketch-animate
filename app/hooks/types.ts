@@ -9,7 +9,7 @@ import type { Options } from "roughjs/bin/core";
  * A shape that can be drawn on the canvas
  */
 export interface Shape {
-  type: "rectangle" | "circle" | "ellipse" | "line" | "polygon";
+  type: "rectangle" | "circle" | "ellipse" | "line" | "polygon" | "text" | "sketchyText";
   x: number;
   y: number;
   width?: number;
@@ -17,6 +17,18 @@ export interface Shape {
   radius?: number;
   points?: [number, number][];
   options?: Options;
+
+  // Text-specific properties (for both text and sketchyText)
+  text?: string;
+  fontSize?: number;
+  fontFamily?: string;
+  color?: string;
+  textAlign?: "left" | "center" | "right";
+  textBaseline?: "top" | "middle" | "bottom" | "alphabetic";
+
+  // Sketchy text specific properties
+  jitter?: number;
+  roughness?: number;
 }
 
 /**
@@ -79,6 +91,40 @@ export interface SceneAPI {
    * Add a custom polygon
    */
   polygon: (points: [number, number][], options?: Options) => void;
+
+  /**
+   * Add text with optional styling (clean, non-wiggly)
+   */
+  text: (
+    text: string,
+    x: number,
+    y: number,
+    options?: {
+      fontSize?: number;
+      fontFamily?: string;
+      color?: string;
+      textAlign?: "left" | "center" | "right";
+      textBaseline?: "top" | "middle" | "bottom" | "alphabetic";
+    }
+  ) => void;
+
+  /**
+   * Add sketchy, hand-drawn text with wiggle effects
+   */
+  sketchyText: (
+    text: string,
+    x: number,
+    y: number,
+    options?: {
+      fontSize?: number;
+      fontFamily?: string;
+      color?: string;
+      textAlign?: "left" | "center" | "right";
+      textBaseline?: "top" | "middle" | "bottom" | "alphabetic";
+      jitter?: number;
+      roughness?: number;
+    }
+  ) => void;
 }
 
 /**

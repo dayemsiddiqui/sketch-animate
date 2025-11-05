@@ -16,6 +16,13 @@ export function Welcome() {
         fillStyle: "hachure",
       });
 
+      // Add text label for the rectangle
+      api.text("Square", 150, 270, {
+        fontSize: 18,
+        color: "rgb(59, 130, 246)",
+        textAlign: "center",
+      });
+
       // Wait 2.5 seconds before adding the triangle
       await api.wait(2500);
 
@@ -26,6 +33,13 @@ export function Welcome() {
         fill: "rgba(34, 197, 94, 0.1)",
         fillStyle: "hachure",
       });
+
+      // Add text label for the triangle
+      api.text("Triangle", 270, 270, {
+        fontSize: 18,
+        color: "rgb(34, 197, 94)",
+        textAlign: "center",
+      });
       // Both shapes wiggle together for the rest of the scene
     })
     .addScene("Circle Scene", 3500, async (api) => {
@@ -35,6 +49,16 @@ export function Welcome() {
         strokeWidth: 2,
         fill: "rgba(239, 68, 68, 0.1)",
         fillStyle: "hachure",
+      });
+
+      // Add sketchy text in the center with wiggle effect!
+      api.sketchyText("Hello!", 200, 205, {
+        fontSize: 28,
+        color: "rgb(239, 68, 68)",
+        textAlign: "center",
+        textBaseline: "middle",
+        jitter: 1.5,
+        roughness: 3,
       });
       // Circle wiggles for the duration of the scene
     })
