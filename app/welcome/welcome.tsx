@@ -1,23 +1,19 @@
-import { useEffect, useRef } from "react";
 import rough from "roughjs";
+import { useCanvas } from "~/hooks/useCanvas";
 import logoDark from "./logo-dark.svg";
 import logoLight from "./logo-light.svg";
 
 export function Welcome() {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  useEffect(() => {
-    if (canvasRef.current) {
-      const rc = rough.canvas(canvasRef.current);
-      // Draw a square with Rough.js
-      rc.rectangle(150, 150, 100, 100, {
-        stroke: "rgb(59, 130, 246)", // blue-500
-        strokeWidth: 2,
-        fill: "rgba(59, 130, 246, 0.1)",
-        fillStyle: "hachure",
-      });
-    }
-  }, []);
+  const canvasRef = useCanvas((canvas) => {
+    const rc = rough.canvas(canvas);
+    // Draw a square with Rough.js
+    rc.rectangle(150, 150, 100, 100, {
+      stroke: "rgb(59, 130, 246)", // blue-500
+      strokeWidth: 2,
+      fill: "rgba(59, 130, 246, 0.1)",
+      fillStyle: "hachure",
+    });
+  });
 
   return (
     <main className="flex items-center justify-center pt-16 pb-4">
