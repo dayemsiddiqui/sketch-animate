@@ -142,6 +142,12 @@ export function useAnimationTimeline(timeline: Timeline) {
               );
             }
             break;
+
+          case "polygon":
+            if (shape.points && shape.points.length > 0) {
+              rc.polygon(shape.points, shape.options);
+            }
+            break;
         }
       });
     },

@@ -9,12 +9,13 @@ import type { Options } from "roughjs/bin/core";
  * A shape that can be drawn on the canvas
  */
 export interface Shape {
-  type: "rectangle" | "circle" | "ellipse" | "line";
+  type: "rectangle" | "circle" | "ellipse" | "line" | "polygon";
   x: number;
   y: number;
   width?: number;
   height?: number;
   radius?: number;
+  points?: [number, number][];
   options?: Options;
 }
 
