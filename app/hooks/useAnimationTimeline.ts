@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import rough from "roughjs";
-import type { Shape, SceneAPI, ShapeDrawOptions } from "./types";
+import type { Shape, SceneAPI, ShapeDrawOptions, ShadowOptions, LabelOptions } from "./types";
 import type { Timeline } from "~/lib/Timeline";
 import { drawSketchyText } from "~/lib/SketchyText";
 import {
@@ -8,6 +8,24 @@ import {
   drawCircleCastShadow,
   drawPolygonCastShadow,
 } from "~/lib/CastShadow";
+import { Shadow } from "~/lib/Shadow";
+import { Label } from "~/lib/Label";
+
+/**
+ * Convert shadow (class or object) to plain options object
+ */
+function toShadowOptions(shadow: ShadowOptions | Shadow | undefined): ShadowOptions | undefined {
+  if (!shadow) return undefined;
+  return shadow instanceof Shadow ? shadow.toOptions() : shadow;
+}
+
+/**
+ * Convert label (class or object) to plain options object
+ */
+function toLabelOptions(label: LabelOptions | Label | undefined): LabelOptions | undefined {
+  if (!label) return undefined;
+  return label instanceof Label ? label.toOptions() : label;
+}
 
 /**
  * Hook for managing an animation timeline with multiple scenes.
@@ -86,22 +104,57 @@ export function useAnimationTimeline(timeline: Timeline) {
       // Helper methods for common shapes
       rect: (x: number, y: number, width: number, height: number, options?: ShapeDrawOptions) => {
         const { shadow, label, ...roughOptions } = options || {};
-        api.addShape({ type: "rectangle", x, y, width, height, options: roughOptions, shadow, label });
+        api.addShape({
+          type: "rectangle",
+          x,
+          y,
+          width,
+          height,
+          options: roughOptions,
+          shadow: toShadowOptions(shadow),
+          label: toLabelOptions(label),
+        });
       },
 
       square: (x: number, y: number, size: number, options?: ShapeDrawOptions) => {
         const { shadow, label, ...roughOptions } = options || {};
-        api.addShape({ type: "rectangle", x, y, width: size, height: size, options: roughOptions, shadow, label });
+        api.addShape({
+          type: "rectangle",
+          x,
+          y,
+          width: size,
+          height: size,
+          options: roughOptions,
+          shadow: toShadowOptions(shadow),
+          label: toLabelOptions(label),
+        });
       },
 
       circle: (x: number, y: number, radius: number, options?: ShapeDrawOptions) => {
         const { shadow, label, ...roughOptions } = options || {};
-        api.addShape({ type: "circle", x, y, radius, options: roughOptions, shadow, label });
+        api.addShape({
+          type: "circle",
+          x,
+          y,
+          radius,
+          options: roughOptions,
+          shadow: toShadowOptions(shadow),
+          label: toLabelOptions(label),
+        });
       },
 
       ellipse: (x: number, y: number, width: number, height: number, options?: ShapeDrawOptions) => {
         const { shadow, label, ...roughOptions } = options || {};
-        api.addShape({ type: "ellipse", x, y, width, height, options: roughOptions, shadow, label });
+        api.addShape({
+          type: "ellipse",
+          x,
+          y,
+          width,
+          height,
+          options: roughOptions,
+          shadow: toShadowOptions(shadow),
+          label: toLabelOptions(label),
+        });
       },
 
       triangle: (x: number, y: number, size: number, options?: ShapeDrawOptions) => {
@@ -113,12 +166,28 @@ export function useAnimationTimeline(timeline: Timeline) {
           [x + size, y + height], // Bottom right
           [x, y + height], // Bottom left
         ];
-        api.addShape({ type: "polygon", x: 0, y: 0, points, options: roughOptions, shadow, label });
+        api.addShape({
+          type: "polygon",
+          x: 0,
+          y: 0,
+          points,
+          options: roughOptions,
+          shadow: toShadowOptions(shadow),
+          label: toLabelOptions(label),
+        });
       },
 
       polygon: (points: [number, number][], options?: ShapeDrawOptions) => {
         const { shadow, label, ...roughOptions } = options || {};
-        api.addShape({ type: "polygon", x: 0, y: 0, points, options: roughOptions, shadow, label });
+        api.addShape({
+          type: "polygon",
+          x: 0,
+          y: 0,
+          points,
+          options: roughOptions,
+          shadow: toShadowOptions(shadow),
+          label: toLabelOptions(label),
+        });
       },
 
       text: (text: string, x: number, y: number, options?) => {

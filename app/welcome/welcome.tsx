@@ -1,6 +1,8 @@
 import { useAnimatedCanvas } from "~/hooks/useAnimatedCanvas";
 import { useAnimationTimeline } from "~/hooks/useAnimationTimeline";
 import { Timeline } from "~/lib/Timeline";
+import { Shadow } from "~/lib/Shadow";
+import { Label } from "~/lib/Label";
 import logoDark from "./logo-dark.svg";
 import logoLight from "./logo-light.svg";
 
@@ -8,61 +10,38 @@ export function Welcome() {
   // Create the animation timeline with fluent API
   const timeline = new Timeline()
     .addScene("Rectangle & Triangle Scene", 5500, async (api) => {
-      // Add rectangle with CAST shadow and label!
+      // Add rectangle with CAST shadow and label using builder classes!
       api.rect(80, 120, 100, 100, {
         stroke: "rgb(59, 130, 246)", // blue-500
         strokeWidth: 2,
         fill: "rgb(147, 197, 253)", // Brighter fill for contrast
         fillStyle: "solid",
-        shadow: {
-          type: "cast", // Cast shadow for retro look!
-          color: "rgba(0, 0, 0, 0.6)",
-          offsetX: 15,
-          offsetY: 15,
-        },
-        label: {
-          text: "DATABASE",
-          fontSize: 14,
-          color: "rgb(29, 78, 216)", // darker blue
-        },
+        shadow: Shadow.cast("rgba(0, 0, 0, 0.6)", 15, 15),
+        label: new Label("DATABASE").fontSize(14).color("rgb(29, 78, 216)"),
       });
 
       // Wait 2.5 seconds before adding the triangle
       await api.wait(2500);
 
-      // Add triangle with CAST shadow and label!
+      // Add triangle with CAST shadow and label using builder classes!
       api.triangle(220, 120, 100, {
         stroke: "rgb(34, 197, 94)", // green-500
         strokeWidth: 2,
         fill: "rgb(134, 239, 172)", // Brighter green fill
         fillStyle: "solid",
-        shadow: {
-          type: "cast", // Cast shadow for retro look!
-          color: "rgba(0, 0, 0, 0.7)",
-          offsetX: 18,
-          offsetY: 18,
-        },
-        label: {
-          text: "API",
-          fontSize: 16,
-          color: "rgb(21, 128, 61)", // darker green
-        },
+        shadow: Shadow.cast("rgba(0, 0, 0, 0.7)", 18, 18),
+        label: Label.create("API").fontSize(16).color("rgb(21, 128, 61)"),
       });
       // Both shapes wiggle together for the rest of the scene
     })
     .addScene("Circle Scene", 3500, async (api) => {
-      // Add circle using helper method with shadow
+      // Add circle using helper method with DROP shadow and builder classes!
       api.circle(200, 200, 50, {
         stroke: "rgb(239, 68, 68)", // red-500
         strokeWidth: 2,
         fill: "rgba(239, 68, 68, 0.1)",
         fillStyle: "hachure",
-        shadow: {
-          color: "rgba(239, 68, 68, 0.4)",
-          offsetX: 5,
-          offsetY: 5,
-          blur: 4,
-        },
+        shadow: Shadow.drop("rgba(239, 68, 68, 0.4)", 5, 5, 4),
       });
 
       // Add sketchy text in the center with wiggle effect!

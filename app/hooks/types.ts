@@ -52,10 +52,11 @@ export interface LabelOptions {
 
 /**
  * Shape drawing options that include Rough.js options, shadow, and label
+ * Accepts both plain objects and builder class instances
  */
 export type ShapeDrawOptions = Options & {
-  shadow?: ShadowOptions;
-  label?: LabelOptions;
+  shadow?: ShadowOptions | import("~/lib/Shadow").Shadow;
+  label?: LabelOptions | import("~/lib/Label").Label;
 };
 
 /**
@@ -83,11 +84,11 @@ export interface Shape {
   jitter?: number;
   roughness?: number;
 
-  // Shadow (optional for any shape)
-  shadow?: ShadowOptions;
+  // Shadow (optional for any shape) - accepts plain object or Shadow class
+  shadow?: ShadowOptions | import("~/lib/Shadow").Shadow;
 
-  // Label (optional for any shape)
-  label?: LabelOptions;
+  // Label (optional for any shape) - accepts plain object or Label class
+  label?: LabelOptions | import("~/lib/Label").Label;
 }
 
 /**
