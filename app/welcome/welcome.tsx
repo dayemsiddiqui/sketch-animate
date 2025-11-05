@@ -1,12 +1,12 @@
 import rough from "roughjs";
-import { useCanvas } from "~/hooks/useCanvas";
+import { useAnimatedCanvas } from "~/hooks/useAnimatedCanvas";
 import logoDark from "./logo-dark.svg";
 import logoLight from "./logo-light.svg";
 
 export function Welcome() {
-  const canvasRef = useCanvas((canvas) => {
+  const canvasRef = useAnimatedCanvas((canvas) => {
     const rc = rough.canvas(canvas);
-    // Draw a square with Rough.js
+    // Draw a square with Rough.js - redrawn each frame for wiggle animation
     rc.rectangle(150, 150, 100, 100, {
       stroke: "rgb(59, 130, 246)", // blue-500
       strokeWidth: 2,
