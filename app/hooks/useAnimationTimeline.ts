@@ -1,38 +1,32 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import rough from "roughjs";
 import type { Scene, Shape, SceneAPI } from "./types";
+import type { Timeline } from "~/lib/Timeline";
 
 /**
  * Hook for managing an animation timeline with multiple scenes.
  * Each scene can use async/await to choreograph when shapes appear.
  *
- * @param scenes - Array of scenes to animate through
- * @param options - Configuration options
+ * @param timeline - Timeline instance created with the Timeline class
  * @returns Draw function to pass to useAnimatedCanvas
  *
  * @example
  * ```tsx
- * const scenes: Scene[] = [
- *   {
- *     name: "intro",
- *     duration: 3000,
- *     draw: async (api) => {
- *       api.addShape({ type: "rectangle", x: 150, y: 150, width: 100, height: 100 });
- *       await api.wait(1000);
- *       api.addShape({ type: "circle", x: 300, y: 150, radius: 50 });
- *     }
- *   }
- * ];
+ * const timeline = new Timeline()
+ *   .addScene("intro", 3000, async (api) => {
+ *     api.addShape({ type: "rectangle", x: 150, y: 150, width: 100, height: 100 });
+ *     await api.wait(1000);
+ *     api.addShape({ type: "circle", x: 300, y: 150, radius: 50 });
+ *   })
+ *   .loop(true);
  *
- * const draw = useAnimationTimeline(scenes);
+ * const draw = useAnimationTimeline(timeline);
  * const canvasRef = useAnimatedCanvas(draw);
  * ```
  */
-export function useAnimationTimeline(
-  scenes: Scene[],
-  options: { loop?: boolean } = {}
-) {
-  const { loop = true } = options;
+export function useAnimationTimeline(timeline: Timeline) {
+  const scenes = timeline.getScenes();
+  const loop = timeline.getLoop();
 
   const [currentSceneIndex, setCurrentSceneIndex] = useState(0);
   const [shapes, setShapes] = useState<Shape[]>([]);

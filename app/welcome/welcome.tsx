@@ -1,57 +1,49 @@
 import { useAnimatedCanvas } from "~/hooks/useAnimatedCanvas";
 import { useAnimationTimeline } from "~/hooks/useAnimationTimeline";
-import type { Scene } from "~/hooks/types";
+import { Timeline } from "~/lib/Timeline";
 import logoDark from "./logo-dark.svg";
 import logoLight from "./logo-light.svg";
 
 export function Welcome() {
-  // Define the animation timeline
-  const scenes: Scene[] = [
-    {
-      name: "Rectangle Scene",
-      duration: 3500, // Rectangle shows for 3.5 seconds
-      draw: async (api) => {
-        // Add rectangle at the start of the scene
-        api.addShape({
-          type: "rectangle",
-          x: 150,
-          y: 150,
-          width: 100,
-          height: 100,
-          options: {
-            stroke: "rgb(59, 130, 246)", // blue-500
-            strokeWidth: 2,
-            fill: "rgba(59, 130, 246, 0.1)",
-            fillStyle: "hachure",
-          },
-        });
-        // Rectangle wiggles for the duration of the scene
-      },
-    },
-    {
-      name: "Circle Scene",
-      duration: 3500, // Circle shows for 3.5 seconds
-      draw: async (api) => {
-        // Add circle at the start of the scene
-        api.addShape({
-          type: "circle",
-          x: 200, // Center of circle
-          y: 200,
-          radius: 50,
-          options: {
-            stroke: "rgb(239, 68, 68)", // red-500
-            strokeWidth: 2,
-            fill: "rgba(239, 68, 68, 0.1)",
-            fillStyle: "hachure",
-          },
-        });
-        // Circle wiggles for the duration of the scene
-      },
-    },
-  ];
+  // Create the animation timeline with fluent API
+  const timeline = new Timeline()
+    .addScene("Rectangle Scene", 3500, async (api) => {
+      // Add rectangle at the start of the scene
+      api.addShape({
+        type: "rectangle",
+        x: 150,
+        y: 150,
+        width: 100,
+        height: 100,
+        options: {
+          stroke: "rgb(59, 130, 246)", // blue-500
+          strokeWidth: 2,
+          fill: "rgba(59, 130, 246, 0.1)",
+          fillStyle: "hachure",
+        },
+      });
+      // Rectangle wiggles for the duration of the scene
+    })
+    .addScene("Circle Scene", 3500, async (api) => {
+      // Add circle at the start of the scene
+      api.addShape({
+        type: "circle",
+        x: 200, // Center of circle
+        y: 200,
+        radius: 50,
+        options: {
+          stroke: "rgb(239, 68, 68)", // red-500
+          strokeWidth: 2,
+          fill: "rgba(239, 68, 68, 0.1)",
+          fillStyle: "hachure",
+        },
+      });
+      // Circle wiggles for the duration of the scene
+    })
+    .loop(true);
 
   // Get the draw function from the timeline
-  const timelineDraw = useAnimationTimeline(scenes, { loop: true });
+  const timelineDraw = useAnimationTimeline(timeline);
 
   // Pass it to the animated canvas at 12 FPS
   const canvasRef = useAnimatedCanvas(timelineDraw, { fps: 12 });
