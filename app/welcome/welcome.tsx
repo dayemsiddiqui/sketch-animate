@@ -5,6 +5,7 @@ import { Shadow } from "~/lib/Shadow";
 import { Label } from "~/lib/Label";
 import { Animate } from "~/lib/Animate";
 import { Palettes, lighten, withAlpha } from "~/lib/Palettes";
+import { CanvasDimensions } from "~/lib/CanvasDimensions";
 import logoDark from "./logo-dark.svg";
 import logoLight from "./logo-light.svg";
 
@@ -92,8 +93,7 @@ export function Welcome() {
         <div className="flex flex-col items-center gap-4">
           <canvas
             ref={canvasRef}
-            width={400}
-            height={400}
+            {...CanvasDimensions.smallSquare}
             className="border border-gray-200 dark:border-gray-700 rounded-lg"
           />
           <p className="text-sm text-gray-600 dark:text-gray-400">
