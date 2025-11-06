@@ -6,6 +6,7 @@
  */
 
 import { Position } from "./Position";
+import { Duration } from "./Duration";
 
 export type Direction = "left" | "right" | "top" | "bottom";
 
@@ -26,17 +27,17 @@ export class Animate {
 
   /**
    * Create a fade-in animation
-   * @param duration - Duration in milliseconds
+   * @param duration - Duration object
    */
-  static fadeIn(duration: number): Animate {
+  static fadeIn(duration: Duration): Animate {
     return new Animate().fadeIn(duration);
   }
 
   /**
    * Create a fade-out animation
-   * @param duration - Duration in milliseconds
+   * @param duration - Duration object
    */
-  static fadeOut(duration: number): Animate {
+  static fadeOut(duration: Duration): Animate {
     return new Animate().fadeOut(duration);
   }
 
@@ -46,7 +47,7 @@ export class Animate {
    * - slideFrom(direction, distance, duration)
    * - slideFrom(offset: Position, duration)
    */
-  static slideFrom(directionOrOffset: Direction | Position, distanceOrDuration: number, duration?: number): Animate {
+  static slideFrom(directionOrOffset: Direction | Position, distanceOrDuration: number | Duration, duration?: Duration): Animate {
     return new Animate().slideFrom(directionOrOffset as any, distanceOrDuration, duration);
   }
 
@@ -56,30 +57,30 @@ export class Animate {
    * - slideTo(direction, distance, duration)
    * - slideTo(offset: Position, duration)
    */
-  static slideTo(directionOrOffset: Direction | Position, distanceOrDuration: number, duration?: number): Animate {
+  static slideTo(directionOrOffset: Direction | Position, distanceOrDuration: number | Duration, duration?: Duration): Animate {
     return new Animate().slideTo(directionOrOffset as any, distanceOrDuration, duration);
   }
 
   /**
    * Add a fade-in effect
-   * @param duration - Duration in milliseconds
+   * @param duration - Duration object
    */
-  fadeIn(duration: number): this {
+  fadeIn(duration: Duration): this {
     this.effects.push({
       type: "fade",
-      duration,
+      duration: duration.ms,
     });
     return this;
   }
 
   /**
    * Add a fade-out effect
-   * @param duration - Duration in milliseconds
+   * @param duration - Duration object
    */
-  fadeOut(duration: number): this {
+  fadeOut(duration: Duration): this {
     this.effects.push({
       type: "fade",
-      duration,
+      duration: duration.ms,
     });
     return this;
   }
@@ -87,24 +88,27 @@ export class Animate {
   /**
    * Add a slide-from effect (shape slides in from a direction or offset)
    * Supports two patterns:
-   * - slideFrom(direction: Direction, distance: number, duration?: number)
-   * - slideFrom(offset: Position, duration?: number)
+   * - slideFrom(direction: Direction, distance: number, duration: Duration)
+   * - slideFrom(offset: Position, duration: Duration)
    */
-  slideFrom(directionOrOffset: Direction | Position, distanceOrDuration: number = 300, duration?: number): this {
+  slideFrom(directionOrOffset: Direction | Position, distanceOrDuration: number | Duration, duration?: Duration): this {
     if (directionOrOffset instanceof Position) {
       // Pattern: slideFrom(Position, duration)
       this.effects.push({
         type: "slide",
         offset: directionOrOffset,
-        duration: distanceOrDuration,
+        duration: (distanceOrDuration as Duration).ms,
       });
     } else {
       // Pattern: slideFrom(direction, distance, duration)
+      if (!duration) {
+        throw new Error("Duration is required when using slideFrom with direction");
+      }
       this.effects.push({
         type: "slide",
         direction: directionOrOffset,
-        distance: distanceOrDuration,
-        duration: duration || 300,
+        distance: distanceOrDuration as number,
+        duration: duration.ms,
       });
     }
     return this;
@@ -113,24 +117,27 @@ export class Animate {
   /**
    * Add a slide-to effect (shape slides out to a direction or offset)
    * Supports two patterns:
-   * - slideTo(direction: Direction, distance: number, duration?: number)
-   * - slideTo(offset: Position, duration?: number)
+   * - slideTo(direction: Direction, distance: number, duration: Duration)
+   * - slideTo(offset: Position, duration: Duration)
    */
-  slideTo(directionOrOffset: Direction | Position, distanceOrDuration: number = 300, duration?: number): this {
+  slideTo(directionOrOffset: Direction | Position, distanceOrDuration: number | Duration, duration?: Duration): this {
     if (directionOrOffset instanceof Position) {
       // Pattern: slideTo(Position, duration)
       this.effects.push({
         type: "slide",
         offset: directionOrOffset,
-        duration: distanceOrDuration,
+        duration: (distanceOrDuration as Duration).ms,
       });
     } else {
       // Pattern: slideTo(direction, distance, duration)
+      if (!duration) {
+        throw new Error("Duration is required when using slideTo with direction");
+      }
       this.effects.push({
         type: "slide",
         direction: directionOrOffset,
-        distance: distanceOrDuration,
-        duration: duration || 300,
+        distance: distanceOrDuration as number,
+        duration: duration.ms,
       });
     }
     return this;

@@ -5,6 +5,7 @@ import { Shadow } from "~/lib/Shadow";
 import { Label } from "~/lib/Label";
 import { Animate } from "~/lib/Animate";
 import { Position } from "~/lib/Position";
+import { Duration } from "~/lib/Duration";
 import { Palettes, lighten, withAlpha } from "~/lib/Palettes";
 import { CanvasDimensions } from "~/lib/CanvasDimensions";
 import logoDark from "./logo-dark.svg";
@@ -13,7 +14,7 @@ import logoLight from "./logo-light.svg";
 export function Welcome() {
   // Create the animation timeline with animated entrance and exit effects!
   const timeline = new Timeline()
-    .addScene("Animated Shapes Demo", 12000, async (api) => {
+    .addScene("Animated Shapes Demo", Duration.seconds(12), async (api) => {
       // Set global padding once - all positioning will automatically respect it
       api.canvas.setPadding(80);
 
@@ -25,11 +26,11 @@ export function Welcome() {
         fillStyle: "solid",
         shadow: Shadow.cast("rgba(0, 0, 0, 0.6)", 15, 15),
         label: new Label("DATABASE").fontSize(14).color(Palettes.tailwind.blue),
-        animateIn: Animate.fadeIn(600).slideFrom(Position.fromLeft(150), 700),
+        animateIn: Animate.fadeIn(Duration.milliseconds(600)).slideFrom(Position.fromLeft(150), Duration.milliseconds(700)),
       });
 
       // Wait a bit, then triangle with Position-based animation
-      await api.wait(1000);
+      await api.wait(Duration.seconds(1));
       const triangle = api.triangle(api.canvas.pos.topRight.offset(-100, 40), 100, {
         stroke: Palettes.nature.green,
         strokeWidth: 2,
@@ -37,20 +38,20 @@ export function Welcome() {
         fillStyle: "solid",
         shadow: Shadow.cast("rgba(0, 0, 0, 0.7)", 18, 18),
         label: Label.create("API").fontSize(16).color(Palettes.nature.moss),
-        animateIn: Animate.fadeIn(500).slideFrom(Position.fromRight(150), 600),
+        animateIn: Animate.fadeIn(Duration.milliseconds(500)).slideFrom(Position.fromRight(150), Duration.milliseconds(600)),
       });
 
       // Let them display for a moment
-      await api.wait(2000);
+      await api.wait(Duration.seconds(2));
 
       // Remove rectangle with Position-based slide out
-      await rect.remove(Animate.fadeOut(500).slideTo(Position.fromBottom(100), 600));
+      await rect.remove(Animate.fadeOut(Duration.milliseconds(500)).slideTo(Position.fromBottom(100), Duration.milliseconds(600)));
 
       // Remove triangle with different animation
-      await triangle.remove(Animate.fadeOut(400).slideTo(Position.fromTop(120), 500));
+      await triangle.remove(Animate.fadeOut(Duration.milliseconds(400)).slideTo(Position.fromTop(120), Duration.milliseconds(500)));
 
       // Wait before showing circle scene
-      await api.wait(500);
+      await api.wait(Duration.milliseconds(500));
 
       // Circle fades in with diagonal slide (Position.fromBottom with offset)
       const circle = api.circle(api.canvas.pos.center.moveUp(100), 50, {
@@ -59,7 +60,7 @@ export function Welcome() {
         fill: withAlpha(Palettes.bold.red, 0.1),
         fillStyle: "hachure",
         shadow: Shadow.drop(withAlpha(Palettes.bold.red, 0.4), 5, 5, 4),
-        animateIn: Animate.fadeIn(400).slideFrom(Position.fromBottom(80), 500),
+        animateIn: Animate.fadeIn(Duration.milliseconds(400)).slideFrom(Position.fromBottom(80), Duration.milliseconds(500)),
       });
 
       // Text fades in at circle's position using getPosition()
@@ -70,15 +71,15 @@ export function Welcome() {
         textBaseline: "middle",
         jitter: 1.5,
         roughness: 3,
-        animateIn: Animate.fadeIn(600),
+        animateIn: Animate.fadeIn(Duration.milliseconds(600)),
       });
 
       // Let them show
-      await api.wait(2500);
+      await api.wait(Duration.seconds(2.5));
 
       // Exit animations with Position-based slides - fade out in sequence
-      await circle.remove(Animate.fadeOut(400).slideTo(Position.fromLeft(100), 500));
-      await text.remove(Animate.fadeOut(300));
+      await circle.remove(Animate.fadeOut(Duration.milliseconds(400)).slideTo(Position.fromLeft(100), Duration.milliseconds(500)));
+      await text.remove(Animate.fadeOut(Duration.milliseconds(300)));
     })
     .loop(true);
 

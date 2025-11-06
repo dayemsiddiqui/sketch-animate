@@ -11,6 +11,7 @@ import { renderShape } from "./animation/renderers/shapeRenderer";
 import { renderLabel } from "./animation/renderers/labelRenderer";
 import { Canvas } from "~/lib/Canvas";
 import { Position } from "~/lib/Position";
+import { Duration } from "~/lib/Duration";
 
 /**
  * Hook for managing an animation timeline with multiple scenes.
@@ -178,8 +179,8 @@ export function useAnimationTimeline(timeline: Timeline) {
         setShapes([]);
       },
 
-      wait: (ms: number): Promise<void> => {
-        return new Promise<void>((resolve) => setTimeout(resolve, ms));
+      wait: (duration: Duration): Promise<void> => {
+        return new Promise<void>((resolve) => setTimeout(resolve, duration.ms));
       },
 
       getRoughCanvas: () => {

@@ -163,9 +163,9 @@ export interface SceneAPI {
 
   /**
    * Wait for a specified duration (Puppeteer-style)
-   * @param ms - Duration to wait in milliseconds
+   * @param duration - Duration object
    */
-  wait: (ms: number) => Promise<void>;
+  wait: (duration: import("~/lib/Duration").Duration) => Promise<void>;
 
   /**
    * Get the Rough.js canvas instance for custom drawing

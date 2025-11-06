@@ -1,5 +1,6 @@
 import type { Scene, SceneAPI } from "~/hooks/types";
 import type { CanvasDimension } from "./CanvasDimensions";
+import { Duration } from "./Duration";
 
 /**
  * Timeline class for building sketch animations with a fluent API.
@@ -28,22 +29,22 @@ export class Timeline {
    * Add a scene to the timeline
    *
    * @param name - Optional name for the scene (useful for debugging)
-   * @param duration - Duration of the scene in milliseconds
+   * @param duration - Duration object for scene length
    * @param draw - Async function that choreographs what to draw in this scene
    * @returns The Timeline instance for chaining
    */
   addScene(
     name: string,
-    duration: number,
+    duration: Duration,
     draw: (api: SceneAPI) => Promise<void>
   ): this;
   addScene(
-    duration: number,
+    duration: Duration,
     draw: (api: SceneAPI) => Promise<void>
   ): this;
   addScene(
-    nameOrDuration: string | number,
-    durationOrDraw: number | ((api: SceneAPI) => Promise<void>),
+    nameOrDuration: string | Duration,
+    durationOrDraw: Duration | ((api: SceneAPI) => Promise<void>),
     maybeDraw?: (api: SceneAPI) => Promise<void>
   ): this {
     let scene: Scene;
@@ -53,13 +54,13 @@ export class Timeline {
       // Called with: name, duration, draw
       scene = {
         name: nameOrDuration,
-        duration: durationOrDraw as number,
+        duration: (durationOrDraw as Duration).ms,
         draw: maybeDraw!,
       };
     } else {
       // Called with: duration, draw
       scene = {
-        duration: nameOrDuration,
+        duration: nameOrDuration.ms,
         draw: durationOrDraw as (api: SceneAPI) => Promise<void>,
       };
     }
