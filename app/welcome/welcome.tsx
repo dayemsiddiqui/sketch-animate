@@ -1,4 +1,6 @@
+import { useState } from "react";
 import { useAnimatedCanvas } from "~/hooks/useAnimatedCanvas";
+import { useCanvasRecorder, type VideoFormat } from "~/hooks/useCanvasRecorder";
 import { AnimatedCanvas } from "~/components/AnimatedCanvas";
 import { Timeline } from "~/lib/Timeline";
 import { Shadow } from "~/lib/Shadow";
@@ -91,6 +93,30 @@ export function Welcome() {
     fps: 12,
   });
 
+  // Setup video recorder and format selection
+  const [selectedFormat, setSelectedFormat] = useState<VideoFormat>("mp4");
+  const { startRecording, state: recordingState, progress, error: recordingError } = useCanvasRecorder();
+
+  // Handle export button click
+  const handleExport = () => {
+    const duration = timeline.getTotalDuration();
+    startRecording(canvasRef.current, duration, selectedFormat, 12);
+  };
+
+  // Get button text based on recording state
+  const getButtonText = () => {
+    switch (recordingState) {
+      case "recording":
+        return `Recording... ${Math.round(progress)}%`;
+      case "processing":
+        return "Processing...";
+      case "error":
+        return "Export Failed";
+      default:
+        return "Export Video";
+    }
+  };
+
   return (
     <main className="flex items-center justify-center pt-16 pb-4">
       <div className="flex-1 flex flex-col items-center gap-16 min-h-0">
@@ -101,9 +127,45 @@ export function Welcome() {
             className="border border-gray-200 dark:border-gray-700 rounded-lg"
             aria-label="Animated sketch canvas with shapes demonstrating entrance and exit animations"
           />
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            Hand-drawn animation with fade-in/out & slide effects (12 FPS)
-          </p>
+          <div className="flex flex-col items-center gap-3">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Hand-drawn animation with fade-in/out & slide effects (12 FPS)
+            </p>
+
+            <div className="flex items-center gap-3">
+              <div className="flex flex-col gap-1">
+                <label htmlFor="format-select" className="text-xs text-gray-500 dark:text-gray-400">
+                  Format:
+                </label>
+                <select
+                  id="format-select"
+                  value={selectedFormat}
+                  onChange={(e) => setSelectedFormat(e.target.value as VideoFormat)}
+                  disabled={recordingState === "recording" || recordingState === "processing"}
+                  className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 dark:disabled:bg-gray-700 disabled:cursor-not-allowed"
+                >
+                  <option value="mp4">MP4 (H.264)</option>
+                  <option value="mov">MOV (QuickTime)</option>
+                  <option value="webm">WebM</option>
+                </select>
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <div className="h-4"></div>
+                <button
+                  onClick={handleExport}
+                  disabled={recordingState === "recording" || recordingState === "processing"}
+                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+                >
+                  {getButtonText()}
+                </button>
+              </div>
+            </div>
+
+            {recordingError && (
+              <p className="text-xs text-red-600 dark:text-red-400">{recordingError}</p>
+            )}
+          </div>
         </div>
       </div>
     </main>
