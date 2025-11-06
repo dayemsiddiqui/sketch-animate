@@ -73,6 +73,13 @@ export function useAnimatedCanvas(
 ): AnimatedCanvasRef {
   const { timeline, dimensions, fitViewport = false, fps = 12 } = options;
 
+  // Set dimensions on timeline for canvas helpers
+  useEffect(() => {
+    if (dimensions) {
+      timeline.setDimensions(dimensions);
+    }
+  }, [timeline, dimensions]);
+
   // Get draw function from timeline
   const draw = useAnimationTimeline(timeline);
 

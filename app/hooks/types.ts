@@ -120,12 +120,37 @@ export interface ShapeHandle {
    * @returns Promise that resolves when the exit animation completes
    */
   remove: (animation?: AnimateOptions | import("~/lib/Animate").Animate) => Promise<void>;
+
+  /**
+   * Get the current position of this shape
+   * @returns Position object representing the shape's x, y coordinates
+   */
+  getPosition: () => import("~/lib/Position").Position;
 }
 
 /**
  * API provided to scene draw functions for choreographing animations
  */
 export interface SceneAPI {
+  /**
+   * Canvas dimension helpers for positioning and sizing shapes
+   * Provides semantic access to canvas boundaries, center points, padding, and sizing utilities
+   *
+   * @example
+   * ```tsx
+   * // Position at center
+   * api.rect(api.canvas.centerX, api.canvas.centerY, 100, 100);
+   *
+   * // Use padding
+   * const p = api.canvas.padding(50);
+   * api.rect(p.left, p.top, 100, 100);
+   *
+   * // Percentage-based sizing
+   * api.rect(100, 100, api.canvas.percent(50), api.canvas.percent(30));
+   * ```
+   */
+  canvas: import("~/lib/Canvas").Canvas;
+
   /**
    * Add a shape to be drawn in the current frame (low-level method)
    */
@@ -155,33 +180,75 @@ export interface SceneAPI {
   // Helper methods for common shapes
   /**
    * Add a rectangle
+   * Supports two signatures:
+   * - rect(x, y, width, height, options?)
+   * - rect(position, width, height, options?)
    * @returns ShapeHandle to control the shape (e.g., remove it later)
    */
-  rect: (x: number, y: number, width: number, height: number, options?: ShapeDrawOptions) => ShapeHandle;
+  rect: (
+    positionOrX: import("~/lib/Position").Position | number,
+    yOrWidth: number,
+    widthOrHeight: number,
+    heightOrOptions?: number | ShapeDrawOptions,
+    optionsOrUndefined?: ShapeDrawOptions
+  ) => ShapeHandle;
 
   /**
    * Add a square
+   * Supports two signatures:
+   * - square(x, y, size, options?)
+   * - square(position, size, options?)
    * @returns ShapeHandle to control the shape (e.g., remove it later)
    */
-  square: (x: number, y: number, size: number, options?: ShapeDrawOptions) => ShapeHandle;
+  square: (
+    positionOrX: import("~/lib/Position").Position | number,
+    yOrSize: number,
+    sizeOrOptions?: number | ShapeDrawOptions,
+    optionsOrUndefined?: ShapeDrawOptions
+  ) => ShapeHandle;
 
   /**
    * Add a circle
+   * Supports two signatures:
+   * - circle(x, y, radius, options?)
+   * - circle(position, radius, options?)
    * @returns ShapeHandle to control the shape (e.g., remove it later)
    */
-  circle: (x: number, y: number, radius: number, options?: ShapeDrawOptions) => ShapeHandle;
+  circle: (
+    positionOrX: import("~/lib/Position").Position | number,
+    yOrRadius: number,
+    radiusOrOptions?: number | ShapeDrawOptions,
+    optionsOrUndefined?: ShapeDrawOptions
+  ) => ShapeHandle;
 
   /**
    * Add an ellipse
+   * Supports two signatures:
+   * - ellipse(x, y, width, height, options?)
+   * - ellipse(position, width, height, options?)
    * @returns ShapeHandle to control the shape (e.g., remove it later)
    */
-  ellipse: (x: number, y: number, width: number, height: number, options?: ShapeDrawOptions) => ShapeHandle;
+  ellipse: (
+    positionOrX: import("~/lib/Position").Position | number,
+    yOrWidth: number,
+    widthOrHeight: number,
+    heightOrOptions?: number | ShapeDrawOptions,
+    optionsOrUndefined?: ShapeDrawOptions
+  ) => ShapeHandle;
 
   /**
    * Add an equilateral triangle
+   * Supports two signatures:
+   * - triangle(x, y, size, options?)
+   * - triangle(position, size, options?)
    * @returns ShapeHandle to control the shape (e.g., remove it later)
    */
-  triangle: (x: number, y: number, size: number, options?: ShapeDrawOptions) => ShapeHandle;
+  triangle: (
+    positionOrX: import("~/lib/Position").Position | number,
+    yOrSize: number,
+    sizeOrOptions?: number | ShapeDrawOptions,
+    optionsOrUndefined?: ShapeDrawOptions
+  ) => ShapeHandle;
 
   /**
    * Add a custom polygon
@@ -191,13 +258,25 @@ export interface SceneAPI {
 
   /**
    * Add text with optional styling (clean, non-wiggly)
+   * Supports two signatures:
+   * - text(text, x, y, options?)
+   * - text(text, position, options?)
    * @returns ShapeHandle to control the shape (e.g., remove it later)
    */
   text: (
     text: string,
-    x: number,
-    y: number,
-    options?: {
+    positionOrX: import("~/lib/Position").Position | number,
+    yOrOptions?: number | {
+      fontSize?: number;
+      fontFamily?: string;
+      color?: string;
+      textAlign?: "left" | "center" | "right";
+      textBaseline?: "top" | "middle" | "bottom" | "alphabetic";
+      shadow?: ShadowOptions;
+      animateIn?: AnimateOptions | import("~/lib/Animate").Animate;
+      animateOut?: AnimateOptions | import("~/lib/Animate").Animate;
+    },
+    optionsOrUndefined?: {
       fontSize?: number;
       fontFamily?: string;
       color?: string;
@@ -211,13 +290,27 @@ export interface SceneAPI {
 
   /**
    * Add sketchy, hand-drawn text with wiggle effects
+   * Supports two signatures:
+   * - sketchyText(text, x, y, options?)
+   * - sketchyText(text, position, options?)
    * @returns ShapeHandle to control the shape (e.g., remove it later)
    */
   sketchyText: (
     text: string,
-    x: number,
-    y: number,
-    options?: {
+    positionOrX: import("~/lib/Position").Position | number,
+    yOrOptions?: number | {
+      fontSize?: number;
+      fontFamily?: string;
+      color?: string;
+      textAlign?: "left" | "center" | "right";
+      textBaseline?: "top" | "middle" | "bottom" | "alphabetic";
+      jitter?: number;
+      roughness?: number;
+      shadow?: ShadowOptions;
+      animateIn?: AnimateOptions | import("~/lib/Animate").Animate;
+      animateOut?: AnimateOptions | import("~/lib/Animate").Animate;
+    },
+    optionsOrUndefined?: {
       fontSize?: number;
       fontFamily?: string;
       color?: string;

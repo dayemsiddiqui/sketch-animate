@@ -1,4 +1,5 @@
 import type { Scene, SceneAPI } from "~/hooks/types";
+import type { CanvasDimension } from "./CanvasDimensions";
 
 /**
  * Timeline class for building sketch animations with a fluent API.
@@ -21,6 +22,7 @@ import type { Scene, SceneAPI } from "~/hooks/types";
 export class Timeline {
   private scenes: Scene[] = [];
   private shouldLoop: boolean = true;
+  private dimensions?: CanvasDimension;
 
   /**
    * Add a scene to the timeline
@@ -105,5 +107,22 @@ export class Timeline {
    */
   getSceneCount(): number {
     return this.scenes.length;
+  }
+
+  /**
+   * Set canvas dimensions for positioning helpers
+   * @internal Used by useAnimatedCanvas hook
+   */
+  setDimensions(dimensions: CanvasDimension): this {
+    this.dimensions = dimensions;
+    return this;
+  }
+
+  /**
+   * Get canvas dimensions
+   * @internal Used by useAnimationTimeline hook
+   */
+  getDimensions(): CanvasDimension | undefined {
+    return this.dimensions;
   }
 }

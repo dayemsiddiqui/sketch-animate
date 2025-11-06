@@ -9,6 +9,8 @@ import { calculateShapeTransform, isEntranceAnimationComplete } from "./animatio
 import { renderShadow, clearShadow } from "./animation/renderers/shadowRenderer";
 import { renderShape } from "./animation/renderers/shapeRenderer";
 import { renderLabel } from "./animation/renderers/labelRenderer";
+import { Canvas } from "~/lib/Canvas";
+import { Position } from "~/lib/Position";
 
 /**
  * Hook for managing an animation timeline with multiple scenes.
@@ -41,8 +43,8 @@ export function useAnimationTimeline(timeline: Timeline) {
   const sceneStartTimeRef = useRef<number>(Date.now());
   const sceneExecutedRef = useRef<boolean>(false);
   const shapeIdCounterRef = useRef<number>(0);
-  // Store shape metadata to avoid stale closures in remove()
-  const shapeMetadataRef = useRef<Map<string, { animateOut?: AnimateOptions | undefined }>>(new Map());
+  // Store shape metadata to avoid stale closures in remove() and for getPosition()
+  const shapeMetadataRef = useRef<Map<string, { animateOut?: AnimateOptions | undefined; x: number; y: number }>>(new Map());
   // Track shapes being removed with their removal timestamp (for immediate render updates)
   const removingShapesRef = useRef<Map<string, { removedAt: number; animateOut?: AnimateOptions | undefined }>>(new Map());
 
@@ -70,6 +72,18 @@ export function useAnimationTimeline(timeline: Timeline) {
   // Helper to create ShapeHandle for a shape
   const createShapeHandle = useCallback((shapeId: string): ShapeHandle => {
     return {
+      getPosition: () => {
+        const metadata = shapeMetadataRef.current.get(shapeId);
+        if (!metadata) {
+          // Fallback: try to find shape in current state
+          const shape = shapesRef.current.find((s) => s.id === shapeId);
+          if (shape) {
+            return Position.at(shape.x, shape.y);
+          }
+          return Position.zero();
+        }
+        return Position.at(metadata.x, metadata.y);
+      },
       remove: async (animation?: AnimateOptions | Animate) => {
         const animateOpts = toAnimateOptions(animation);
         const now = Date.now();
@@ -126,8 +140,16 @@ export function useAnimationTimeline(timeline: Timeline) {
     const scene = scenes[currentSceneIndex];
     sceneStartTimeRef.current = Date.now();
 
+    // Get dimensions from timeline for canvas helpers
+    const dimensions = timeline.getDimensions();
+    const canvasHelper = dimensions
+      ? Canvas.create(dimensions)
+      : Canvas.create({ width: 1080, height: 1920 }); // Default to instagramReel dimensions
+
     // Create the Scene API - start with base methods
     const baseApi = {
+      canvas: canvasHelper,
+
       addShape: (shape: Shape) => {
         // Preserve provided id (from factory) to keep handles/metadata in sync.
         // Only generate a new id if one was not provided.

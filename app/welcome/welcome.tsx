@@ -13,8 +13,11 @@ export function Welcome() {
   // Create the animation timeline with animated entrance and exit effects!
   const timeline = new Timeline()
     .addScene("Animated Shapes Demo", 12000, async (api) => {
-      // Rectangle fades in and slides from left (using tailwind palette)
-      const rect = api.rect(80, 120, 100, 100, {
+      // Set global padding once - all positioning will automatically respect it
+      api.canvas.setPadding(80);
+
+      // Rectangle fades in using Position object from canvas.pos
+      const rect = api.rect(api.canvas.pos.topLeft.moveDown(40), 100, 100, {
         stroke: Palettes.tailwind.blue,
         strokeWidth: 2,
         fill: lighten(Palettes.tailwind.blue, 0.5),
@@ -24,9 +27,9 @@ export function Welcome() {
         animateIn: Animate.fadeIn(600).slideFrom("left", 150, 700),
       });
 
-      // Wait a bit, then triangle fades in and slides from right (using nature palette)
+      // Wait a bit, then triangle using Position offset
       await api.wait(1000);
-      const triangle = api.triangle(220, 120, 100, {
+      const triangle = api.triangle(api.canvas.pos.topRight.offset(-100, 40), 100, {
         stroke: Palettes.nature.green,
         strokeWidth: 2,
         fill: lighten(Palettes.nature.green, 0.6),
@@ -48,8 +51,8 @@ export function Welcome() {
       // Wait before showing circle scene
       await api.wait(500);
 
-      // Circle fades in from bottom (using bold palette with helpers)
-      const circle = api.circle(200, 200, 50, {
+      // Circle fades in using canvas.pos.center with offset
+      const circle = api.circle(api.canvas.pos.center.moveUp(100), 50, {
         stroke: Palettes.bold.red,
         strokeWidth: 2,
         fill: withAlpha(Palettes.bold.red, 0.1),
@@ -58,8 +61,8 @@ export function Welcome() {
         animateIn: Animate.fadeIn(400).slideFrom("bottom", 80, 500),
       });
 
-      // Text fades in separately
-      const text = api.sketchyText("Hello!", 200, 205, {
+      // Text fades in at circle's position using getPosition()
+      const text = api.sketchyText("Hello!", circle.getPosition().moveUp(5), {
         fontSize: 28,
         color: Palettes.bold.red,
         textAlign: "center",
@@ -81,7 +84,7 @@ export function Welcome() {
   // Create animated canvas with timeline, dimensions, and viewport fitting
   const canvasRef = useAnimatedCanvas({
     timeline,
-    dimensions: CanvasDimensions.instagramReel,
+    dimensions: CanvasDimensions.youtubeVideo,
     fitViewport: true,
     fps: 12,
   });
