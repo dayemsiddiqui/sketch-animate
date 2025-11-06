@@ -27,21 +27,30 @@ function calculateEntranceAnimation(
 
     if (effect.type === "fade") {
       opacity *= progress;
-    } else if (effect.type === "slide" && effect.direction && effect.distance) {
+    } else if (effect.type === "slide") {
       const slideProgress = 1 - progress; // Start far, move to 0
-      switch (effect.direction) {
-        case "left":
-          offsetX -= effect.distance * slideProgress;
-          break;
-        case "right":
-          offsetX += effect.distance * slideProgress;
-          break;
-        case "top":
-          offsetY -= effect.distance * slideProgress;
-          break;
-        case "bottom":
-          offsetY += effect.distance * slideProgress;
-          break;
+
+      // Handle Position-based offset (new pattern)
+      if (effect.offset) {
+        offsetX += effect.offset.x * slideProgress;
+        offsetY += effect.offset.y * slideProgress;
+      }
+      // Handle direction+distance (old pattern)
+      else if (effect.direction && effect.distance) {
+        switch (effect.direction) {
+          case "left":
+            offsetX -= effect.distance * slideProgress;
+            break;
+          case "right":
+            offsetX += effect.distance * slideProgress;
+            break;
+          case "top":
+            offsetY -= effect.distance * slideProgress;
+            break;
+          case "bottom":
+            offsetY += effect.distance * slideProgress;
+            break;
+        }
       }
     }
   });
@@ -74,21 +83,29 @@ function calculateExitAnimation(
 
     if (effect.type === "fade") {
       opacity *= 1 - progress; // Fade out
-    } else if (effect.type === "slide" && effect.direction && effect.distance) {
-      // Slide out (move away)
-      switch (effect.direction) {
-        case "left":
-          offsetX -= effect.distance * progress;
-          break;
-        case "right":
-          offsetX += effect.distance * progress;
-          break;
-        case "top":
-          offsetY -= effect.distance * progress;
-          break;
-        case "bottom":
-          offsetY += effect.distance * progress;
-          break;
+    } else if (effect.type === "slide") {
+      // Handle Position-based offset (new pattern)
+      if (effect.offset) {
+        offsetX += effect.offset.x * progress;
+        offsetY += effect.offset.y * progress;
+      }
+      // Handle direction+distance (old pattern)
+      else if (effect.direction && effect.distance) {
+        // Slide out (move away)
+        switch (effect.direction) {
+          case "left":
+            offsetX -= effect.distance * progress;
+            break;
+          case "right":
+            offsetX += effect.distance * progress;
+            break;
+          case "top":
+            offsetY -= effect.distance * progress;
+            break;
+          case "bottom":
+            offsetY += effect.distance * progress;
+            break;
+        }
       }
     }
   });

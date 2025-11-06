@@ -68,6 +68,60 @@ export class Position {
   }
 
   // ========================================
+  // Direction-Aware Factory Methods
+  // ========================================
+
+  /**
+   * Create an offset from the left (negative x direction)
+   * Useful for slide animations: slideFrom(Position.fromLeft(150))
+   *
+   * @param distance - Distance from left in pixels
+   * @returns Position(-distance, 0)
+   *
+   * @example
+   * ```tsx
+   * Animate.slideFrom(Position.fromLeft(150), 700)
+   * // Slides from 150px to the left
+   * ```
+   */
+  static fromLeft(distance: number): Position {
+    return new Position(-distance, 0);
+  }
+
+  /**
+   * Create an offset from the right (positive x direction)
+   * Useful for slide animations: slideFrom(Position.fromRight(150))
+   *
+   * @param distance - Distance from right in pixels
+   * @returns Position(distance, 0)
+   */
+  static fromRight(distance: number): Position {
+    return new Position(distance, 0);
+  }
+
+  /**
+   * Create an offset from the top (negative y direction)
+   * Useful for slide animations: slideFrom(Position.fromTop(100))
+   *
+   * @param distance - Distance from top in pixels
+   * @returns Position(0, -distance)
+   */
+  static fromTop(distance: number): Position {
+    return new Position(0, -distance);
+  }
+
+  /**
+   * Create an offset from the bottom (positive y direction)
+   * Useful for slide animations: slideFrom(Position.fromBottom(100))
+   *
+   * @param distance - Distance from bottom in pixels
+   * @returns Position(0, distance)
+   */
+  static fromBottom(distance: number): Position {
+    return new Position(0, distance);
+  }
+
+  // ========================================
   // Offset Methods
   // ========================================
 
