@@ -341,6 +341,12 @@ export interface Scene {
   duration?: number;
 
   /**
+   * Background color for the scene
+   * Defaults to zinc-700 (#3f3f46) if not specified
+   */
+  backgroundColor?: string;
+
+  /**
    * Async function that choreographs what to draw in this scene
    */
   draw: (api: SceneAPI) => Promise<void>;

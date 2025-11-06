@@ -31,37 +31,43 @@ export class Timeline {
    * @param name - Optional name for the scene (useful for debugging)
    * @param duration - Duration object for scene length
    * @param draw - Async function that choreographs what to draw in this scene
+   * @param backgroundColor - Optional background color for the scene (defaults to zinc-700)
    * @returns The Timeline instance for chaining
    */
   addScene(
     name: string,
     duration: Duration,
-    draw: (api: SceneAPI) => Promise<void>
+    draw: (api: SceneAPI) => Promise<void>,
+    backgroundColor?: string
   ): this;
   addScene(
     duration: Duration,
-    draw: (api: SceneAPI) => Promise<void>
+    draw: (api: SceneAPI) => Promise<void>,
+    backgroundColor?: string
   ): this;
   addScene(
     nameOrDuration: string | Duration,
     durationOrDraw: Duration | ((api: SceneAPI) => Promise<void>),
-    maybeDraw?: (api: SceneAPI) => Promise<void>
+    drawOrBackgroundColor?: ((api: SceneAPI) => Promise<void>) | string,
+    maybeBackgroundColor?: string
   ): this {
     let scene: Scene;
 
     // Handle overloads
     if (typeof nameOrDuration === "string") {
-      // Called with: name, duration, draw
+      // Called with: name, duration, draw, backgroundColor?
       scene = {
         name: nameOrDuration,
         duration: (durationOrDraw as Duration).ms,
-        draw: maybeDraw!,
+        draw: drawOrBackgroundColor as (api: SceneAPI) => Promise<void>,
+        backgroundColor: maybeBackgroundColor,
       };
     } else {
-      // Called with: duration, draw
+      // Called with: duration, draw, backgroundColor?
       scene = {
         duration: nameOrDuration.ms,
         draw: durationOrDraw as (api: SceneAPI) => Promise<void>,
+        backgroundColor: typeof drawOrBackgroundColor === "string" ? drawOrBackgroundColor : undefined,
       };
     }
 

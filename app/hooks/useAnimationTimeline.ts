@@ -220,6 +220,12 @@ export function useAnimationTimeline(timeline: Timeline) {
       const ctx = canvas.getContext("2d");
       if (!ctx) return;
 
+      // Fill background color for current scene
+      const currentScene = scenes[currentSceneIndex];
+      const backgroundColor = currentScene?.backgroundColor || "#3f3f46"; // Default: zinc-700
+      ctx.fillStyle = backgroundColor;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
       const currentTime = Date.now();
 
       // Draw all shapes - use ref to avoid stale closure
@@ -277,7 +283,7 @@ export function useAnimationTimeline(timeline: Timeline) {
         ctx.restore();
       });
     },
-    [] // Empty deps - use shapesRef to avoid stale closures
+    [scenes, currentSceneIndex] // Include scene data for background color
   );
 
   return draw;

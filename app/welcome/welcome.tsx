@@ -82,7 +82,7 @@ export function Welcome() {
       // Exit animations with Position-based slides - fade out in sequence
       await circle.remove(Animate.fadeOut(Duration.milliseconds(400)).slideTo(Position.fromLeft(100), Duration.milliseconds(500)));
       await text.remove(Animate.fadeOut(Duration.milliseconds(300)));
-    })
+    }, "#3f3f46") // zinc-700 background
     .loop(true);
 
   // Create animated canvas with timeline, dimensions, and viewport fitting
