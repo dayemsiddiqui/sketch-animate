@@ -1,5 +1,5 @@
 import { useAnimatedCanvas } from "~/hooks/useAnimatedCanvas";
-import { useAnimationTimeline } from "~/hooks/useAnimationTimeline";
+import { AnimatedCanvas } from "~/components/AnimatedCanvas";
 import { Timeline } from "~/lib/Timeline";
 import { Shadow } from "~/lib/Shadow";
 import { Label } from "~/lib/Label";
@@ -78,30 +78,28 @@ export function Welcome() {
     })
     .loop(true);
 
-  // Get the draw function from the timeline
-  const timelineDraw = useAnimationTimeline(timeline);
-
-  // Pass it to the animated canvas at 12 FPS
-  const canvasRef = useAnimatedCanvas(timelineDraw, { fps: 12 });
+  // Create animated canvas with timeline, dimensions, and viewport fitting
+  const canvasRef = useAnimatedCanvas({
+    timeline,
+    dimensions: CanvasDimensions.instagramReel,
+    fitViewport: true,
+    fps: 12,
+  });
 
   return (
     <main className="flex items-center justify-center pt-16 pb-4">
       <div className="flex-1 flex flex-col items-center gap-16 min-h-0">
-      
-
         {/* Rough.js Canvas */}
         <div className="flex flex-col items-center gap-4">
-          <canvas
+          <AnimatedCanvas
             ref={canvasRef}
-            {...CanvasDimensions.smallSquare}
             className="border border-gray-200 dark:border-gray-700 rounded-lg"
+            aria-label="Animated sketch canvas with shapes demonstrating entrance and exit animations"
           />
           <p className="text-sm text-gray-600 dark:text-gray-400">
             Hand-drawn animation with fade-in/out & slide effects (12 FPS)
           </p>
         </div>
-
-        
       </div>
     </main>
   );

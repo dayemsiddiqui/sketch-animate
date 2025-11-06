@@ -1,8 +1,28 @@
 import { useRef, useEffect, useCallback } from "react";
+import type { Timeline } from "~/lib/Timeline";
+import type { CanvasDimension } from "~/lib/CanvasDimensions";
+import { useAnimationTimeline } from "./useAnimationTimeline";
 
 type DrawFunction = (canvas: HTMLCanvasElement) => void;
 
 interface UseAnimatedCanvasOptions {
+  /**
+   * Timeline instance with scenes to animate
+   */
+  timeline: Timeline;
+
+  /**
+   * Canvas dimensions (width and height)
+   * Can use CanvasDimensions presets or custom dimensions
+   */
+  dimensions?: CanvasDimension;
+
+  /**
+   * Whether to scale canvas to fit viewport without scrolling
+   * Default is false
+   */
+  fitViewport?: boolean;
+
   /**
    * Frames per second for the animation.
    * Default is 12 FPS to match traditional hand-drawn animation feel.
@@ -10,47 +30,77 @@ interface UseAnimatedCanvasOptions {
   fps?: number;
 }
 
+export interface AnimatedCanvasRef {
+  current: HTMLCanvasElement | null;
+  dimensions?: CanvasDimension;
+  fitViewport: boolean;
+}
+
 /**
- * Custom hook for creating animated canvas elements with continuous redraws.
+ * Custom hook for creating animated canvas elements with timeline-based animations.
  * Perfect for creating hand-drawn wiggle animations with Rough.js where each
  * frame is slightly different due to natural randomness.
  *
  * The animation runs at a specified FPS (default 12) to mimic traditional
  * hand-drawn animation timing, where animators draw "on twos" (12 FPS).
  *
- * @param draw - Callback function that receives the canvas element for drawing
- * @param options - Configuration options including FPS
- * @returns canvasRef - Ref to attach to the canvas element
+ * @param options - Configuration object with timeline, dimensions, and viewport settings
+ * @returns canvasRef - Extended ref with metadata for the AnimatedCanvas component
  *
  * @example
  * ```tsx
- * // Default 12 FPS (hand-drawn animation feel)
- * const canvasRef = useAnimatedCanvas((canvas) => {
- *   const rc = rough.canvas(canvas);
- *   rc.rectangle(150, 150, 100, 100);
+ * import { CanvasDimensions } from "~/lib/CanvasDimensions";
+ * import { Timeline } from "~/lib/Timeline";
+ *
+ * const timeline = new Timeline()
+ *   .addScene("intro", 3000, async (api) => {
+ *     const rect = api.rect(100, 100, 200, 150);
+ *   })
+ *   .loop(true);
+ *
+ * const canvasRef = useAnimatedCanvas({
+ *   timeline,
+ *   dimensions: CanvasDimensions.instagramReel,
+ *   fitViewport: true,
+ *   fps: 12
  * });
  *
- * // Custom FPS
- * const canvasRef = useAnimatedCanvas((canvas) => {
- *   const rc = rough.canvas(canvas);
- *   rc.rectangle(150, 150, 100, 100);
- * }, { fps: 24 });
- *
- * return <canvas ref={canvasRef} width={400} height={400} />;
+ * return <AnimatedCanvas ref={canvasRef} className="..." />;
  * ```
  */
 export function useAnimatedCanvas(
-  draw: DrawFunction,
-  options: UseAnimatedCanvasOptions = {}
-) {
-  const { fps = 12 } = options;
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  options: UseAnimatedCanvasOptions
+): AnimatedCanvasRef {
+  const { timeline, dimensions, fitViewport = false, fps = 12 } = options;
+
+  // Get draw function from timeline
+  const draw = useAnimationTimeline(timeline);
+
+  // Internal canvas ref for animation loop
+  const internalCanvasRef = useRef<HTMLCanvasElement>(null);
+
+  // Create extended ref object with metadata (stable across renders)
+  const extendedRef = useRef<AnimatedCanvasRef>({
+    get current() {
+      return internalCanvasRef.current;
+    },
+    set current(value) {
+      internalCanvasRef.current = value;
+    },
+    dimensions,
+    fitViewport,
+  } as AnimatedCanvasRef);
+
+  // Update metadata on options change
+  extendedRef.current.dimensions = dimensions;
+  extendedRef.current.fitViewport = fitViewport;
+
   const animationFrameIdRef = useRef<number | undefined>(undefined);
   const lastFrameTimeRef = useRef<number>(0);
 
   const animate = useCallback(
     (currentTime: number) => {
-      const canvas = canvasRef.current;
+      const canvas = internalCanvasRef.current;
       if (!canvas) return;
 
       const ctx = canvas.getContext("2d");
@@ -90,5 +140,6 @@ export function useAnimatedCanvas(
     };
   }, [animate]);
 
-  return canvasRef;
+  // Return extended ref with metadata for AnimatedCanvas component
+  return extendedRef.current;
 }
