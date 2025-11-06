@@ -37,6 +37,7 @@ export function useAnimationTimeline(timeline: Timeline) {
 
   const [currentSceneIndex, setCurrentSceneIndex] = useState(0);
   const [shapes, setShapes] = useState<Shape[]>([]);
+  const shapesRef = useRef<Shape[]>([]); // Keep ref in sync with state for draw function
   const sceneStartTimeRef = useRef<number>(Date.now());
   const sceneExecutedRef = useRef<boolean>(false);
   const shapeIdCounterRef = useRef<number>(0);
@@ -44,6 +45,11 @@ export function useAnimationTimeline(timeline: Timeline) {
   const shapeMetadataRef = useRef<Map<string, { animateOut?: AnimateOptions | undefined }>>(new Map());
   // Track shapes being removed with their removal timestamp (for immediate render updates)
   const removingShapesRef = useRef<Map<string, { removedAt: number; animateOut?: AnimateOptions | undefined }>>(new Map());
+
+  // Keep ref in sync with state
+  useEffect(() => {
+    shapesRef.current = shapes;
+  }, [shapes]);
 
   // Move to next scene
   const nextScene = useCallback(() => {
@@ -123,8 +129,19 @@ export function useAnimationTimeline(timeline: Timeline) {
     // Create the Scene API - start with base methods
     const baseApi = {
       addShape: (shape: Shape) => {
-        // Generate unique ID and add lifecycle metadata
-        const id = `shape-${++shapeIdCounterRef.current}`;
+        // Preserve provided id (from factory) to keep handles/metadata in sync.
+        // Only generate a new id if one was not provided.
+        let id = shape.id;
+        if (!id) {
+          id = `shape-${++shapeIdCounterRef.current}`;
+        } else {
+          // Update counter if the provided ID is higher to prevent collisions
+          const numericId = Number(id.replace("shape-", ""));
+          if (!Number.isNaN(numericId) && numericId > shapeIdCounterRef.current) {
+            shapeIdCounterRef.current = numericId;
+          }
+        }
+
         const now = Date.now();
         const shapeWithMeta: Shape = {
           ...shape,
@@ -182,8 +199,8 @@ export function useAnimationTimeline(timeline: Timeline) {
 
       const currentTime = Date.now();
 
-      // Draw all shapes
-      shapes.forEach((shape) => {
+      // Draw all shapes - use ref to avoid stale closure
+      shapesRef.current.forEach((shape) => {
         // Calculate animation transform using extracted calculator
         const removingInfo = removingShapesRef.current.get(shape.id);
 
@@ -207,6 +224,7 @@ export function useAnimationTimeline(timeline: Timeline) {
         if (shape.state === "entering" && shape.animateIn) {
           const elapsed = currentTime - shape.addedAt;
           if (isEntranceAnimationComplete(elapsed, toAnimateOptions(shape.animateIn))) {
+            // Use functional update to ensure we're working with the latest state
             setShapes((prev) =>
               prev.map((s) => (s.id === shape.id ? { ...s, state: "visible" as const } : s))
             );
@@ -236,7 +254,7 @@ export function useAnimationTimeline(timeline: Timeline) {
         ctx.restore();
       });
     },
-    [shapes]
+    [] // Empty deps - use shapesRef to avoid stale closures
   );
 
   return draw;
